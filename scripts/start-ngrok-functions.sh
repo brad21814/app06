@@ -40,8 +40,8 @@ echo ""
 echo "---------------------------------------------------"
 
 # Paths to env files
-FUNCTIONS_ENV="../frontend/functions/.env"
-FRONTEND_ENV="../frontend/.env.local"
+FUNCTIONS_ENV="../functions/.env"
+FRONTEND_ENV="../.env.local"
 
 # Function to update or add env var
 update_env_var() {

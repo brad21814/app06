@@ -1,36 +1,47 @@
 {
-    "functions": {
-        "source": "functions"
+  "functions": {
+    "source": "functions"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
     },
-    "storage": {
-        "rules": "storage.rules"
+    "functions": {
+      "port": 5001
     },
     "firestore": {
-        "rules": "firestore.rules",
-        "indexes": "firestore.indexes.json"
+      "rules": "firestore.rules",
+      "port": 8080
     },
-    "emulators": {
-        "auth": {
-            "port": 9099
-        },
-        "functions": {
-            "port": 5001
-        },
-        "firestore": {
-            "rules": "firestore.rules",
-            "port": 8080
-        },
-        "pubsub": {
-            "port": 8085
-        },
-        "ui": {
-            "enabled": true,
-            "port": 4000
-        },
-        "storage": {
-            "rules": "storage.rules",
-            "port": 9199
-        },
-        "singleProjectMode": true
+    "pubsub": {
+      "port": 8085
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "storage": {
+      "rules": "storage.rules",
+      "port": 9199
+    },
+    "singleProjectMode": true
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
     }
+  }
 }
