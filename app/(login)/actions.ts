@@ -271,7 +271,7 @@ export const inviteTeamMember = validatedActionWithUser(
       }
     }
 
-    // Check if there's an existing invitation
+    // Check for existing invitation
     const inviteQ = query(
       getInvitationsCollection(),
       where('email', '==', email),
@@ -285,15 +285,23 @@ export const inviteTeamMember = validatedActionWithUser(
       return { error: 'An invitation has already been sent to this email' };
     }
 
+    // Get Account ID from Team
+    const teamDoc = await getDoc(getTeamDoc(userWithTeam.teamId));
+    if (!teamDoc.exists()) {
+      return { error: 'Team data not found' };
+    }
+    const teamData = teamDoc.data();
+
     // Create a new invitation
     const newInviteId = doc(getInvitationsCollection()).id;
     const newInvite: Invitation = {
       id: newInviteId,
       teamId: userWithTeam.teamId,
+      accountId: teamData.accountId,
       email,
       role,
       invitedBy: user.id,
-      invitedAt: Timestamp.now(),
+      createdAt: Timestamp.now(),
       status: 'pending'
     };
     await setDoc(doc(getInvitationsCollection(), newInviteId), newInvite);
