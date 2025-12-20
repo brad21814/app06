@@ -1,0 +1,16 @@
+import { SiteHeader } from '@/components/site-header';
+
+export default function MarketingLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="min-h-screen flex flex-col">
+            <SiteHeader />
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {children}
+            </main>
+        </div>
+    );
+}
