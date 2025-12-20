@@ -45,7 +45,7 @@ export async function POST(request: Request) {
             id: newTokenId,
             userId: user.id,
             token,
-            expiresAt,
+            expiresAt: expiresAt as any,
             createdAt: Timestamp.now() as any
         };
 
