@@ -4,7 +4,7 @@ import {
     getPasswordResetTokensCollection,
     getUserDoc
 } from '@/lib/firestore/admin/collections';
-import { hashPassword } from '@/lib/auth/session';
+import { adminAuth } from '@/lib/firebase/server';
 import { Timestamp } from 'firebase-admin/firestore';
 
 const resetPasswordSchema = z.object({
@@ -55,12 +55,9 @@ export async function POST(request: Request) {
             );
         }
 
-        const passwordHash = await hashPassword(password);
+        await adminAuth.updateUser(resetToken.userId, { password });
 
-        await Promise.all([
-            getUserDoc(resetToken.userId).update({ passwordHash } as any),
-            tokenSnapshot.docs[0].ref.delete()
-        ]);
+        await tokenSnapshot.docs[0].ref.delete();
 
         return NextResponse.json({ success: 'Password reset successfully' });
 

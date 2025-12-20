@@ -35,7 +35,7 @@ import {
   Invitation,
   PasswordResetToken,
 } from '@/types/firestore';
-import { comparePasswords, hashPassword, setSession } from '@/lib/auth/session';
+import { setSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createCheckoutSession } from '@/lib/payments/stripe';
@@ -74,7 +74,6 @@ async function logActivity(
 // Migrated to /api/auth/reset-password
 
 const updatePasswordSchema = z.object({
-  currentPassword: z.string().min(8).max(100),
   newPassword: z.string().min(8).max(100),
   confirmPassword: z.string().min(8).max(100)
 });
@@ -82,52 +81,20 @@ const updatePasswordSchema = z.object({
 export const updatePassword = validatedActionWithUser(
   updatePasswordSchema,
   async (data, _, user) => {
-    const { currentPassword, newPassword, confirmPassword } = data;
-
-    // Need to fetch passwordHash again as it might not be in the session user object if we sanitized it
-    // But getUser returns what's in DB.
-    // Let's assume user object has it or we fetch it.
-    // The User type in firestore.ts doesn't have it. I should fetch it.
-    const userDoc = await getDoc(getUserDoc(user.id));
-    const fullUser = userDoc.data() as User & { passwordHash: string };
-
-    const isPasswordValid = await comparePasswords(
-      currentPassword,
-      fullUser.passwordHash
-    );
-
-    if (!isPasswordValid) {
-      return {
-        currentPassword,
-        newPassword,
-        confirmPassword,
-        error: 'Current password is incorrect.'
-      };
-    }
-
-    if (currentPassword === newPassword) {
-      return {
-        currentPassword,
-        newPassword,
-        confirmPassword,
-        error: 'New password must be different from the current password.'
-      };
-    }
+    const { newPassword, confirmPassword } = data;
 
     if (confirmPassword !== newPassword) {
       return {
-        currentPassword,
         newPassword,
         confirmPassword,
         error: 'New password and confirmation password do not match.'
       };
     }
 
-    const newPasswordHash = await hashPassword(newPassword);
     const userWithTeam = await getUserWithTeam(user.id);
 
     await Promise.all([
-      updateDoc(getUserDoc(user.id), { passwordHash: newPasswordHash } as any),
+      adminAuth.updateUser(user.id, { password: newPassword }),
       logActivity(userWithTeam?.teamId, user.id, ActivityType.UPDATE_PASSWORD)
     ]);
 
@@ -137,26 +104,11 @@ export const updatePassword = validatedActionWithUser(
   }
 );
 
-const deleteAccountSchema = z.object({
-  password: z.string().min(8).max(100)
-});
+const deleteAccountSchema = z.object({});
 
 export const deleteAccount = validatedActionWithUser(
   deleteAccountSchema,
-  async (data, _, user) => {
-    const { password } = data;
-
-    const userDoc = await getDoc(getUserDoc(user.id));
-    const fullUser = userDoc.data() as User & { passwordHash: string };
-
-    const isPasswordValid = await comparePasswords(password, fullUser.passwordHash);
-    if (!isPasswordValid) {
-      return {
-        password,
-        error: 'Incorrect password. Account deletion failed.'
-      };
-    }
-
+  async (_, __, user) => {
     const userWithTeam = await getUserWithTeam(user.id);
 
     await logActivity(

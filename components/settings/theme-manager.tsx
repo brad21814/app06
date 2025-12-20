@@ -127,7 +127,7 @@ export function ThemeManager() {
         const q = query(getThemesCollection(), where('accountId', '==', userData.accountId));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Theme));
+            const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
             setThemes(data);
             setLoading(false);
         }, (error) => {

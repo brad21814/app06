@@ -1,23 +1,22 @@
+
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import {
     getUsersCollection,
-    getTeamsCollection,
     getTeamMembersCollection,
     getActivityLogsCollection,
     getInvitationsCollection,
     getUserDoc,
-    getTeamDoc
+    getTeamDoc,
+    getTeamsCollection
 } from '@/lib/firestore/admin/collections';
-import { hashPassword, setSession } from '@/lib/auth/session';
-import { ActivityType, User, Team, TeamMember, Invitation } from '@/types/firestore';
+import { setSession } from '@/lib/auth/session';
+import { ActivityType, User, Team, TeamMember } from '@/types/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
-import { adminDb, adminAuth } from '@/lib/firebase/server';
-import { emailService } from '@/lib/email';
+import { adminAuth } from '@/lib/firebase/server';
 
 const signUpSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
+    idToken: z.string(),
     inviteId: z.string().optional(),
     redirect: z.string().optional(),
     priceId: z.string().optional(),
@@ -53,47 +52,36 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log('Sign Up Debug: Body parsed successfully');
-        const { email, password, inviteId } = result.data;
+        const { idToken, inviteId, redirect, priceId } = result.data;
 
-        console.log('Sign Up Debug: Checking for existing user', { email });
-        const usersRef = getUsersCollection();
-        console.log('Users Collection Path:', usersRef.path);
+        // Verify ID Token
+        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const { uid: newUserId, email } = decodedToken;
 
-        const userSnapshot = await usersRef
-            .where('email', '==', email)
-            .limit(1)
-            .get();
-        console.log('Sign Up Debug: User query complete', { empty: userSnapshot.empty });
-
-        if (!userSnapshot.empty) {
+        if (!email) {
             return NextResponse.json(
-                { error: 'Account already exists with this email.' },
+                { error: 'Email is required.' },
                 { status: 400 }
             );
         }
 
-        console.log('Sign Up Debug: Hashing password');
-        const passwordHash = await hashPassword(password);
-        console.log('Sign Up Debug: Password hashed');
+        const usersRef = getUsersCollection();
+        const userDocRef = getUserDoc(newUserId);
+        const userDocSnapshot = await userDocRef.get();
 
-        console.log('Sign Up Debug: Creating user in Firebase Auth');
-        const userRecord = await adminAuth.createUser({
-            email,
-            password,
-            displayName: email.split('@')[0],
-            disabled: false,
-        });
-        const newUserId = userRecord.uid;
-        console.log('Sign Up Debug: Generated new user ID', newUserId);
+        if (userDocSnapshot.exists) {
+            // User already initialized, set session and redirect
+            const user = userDocSnapshot.data() as User;
+            await setSession(user);
+            return NextResponse.json({ success: true, redirectUrl: redirect || '/dashboard' });
+        }
 
         let teamId: string | undefined;
         let accountId: string | undefined;
         let userRole = 'owner';
 
-        // Check for invitation *before* creating the user document object
+        // Check for invitation
         if (inviteId) {
-            console.log('Sign Up Debug: Handling invitation', inviteId);
             const inviteDoc = await getInvitationsCollection().doc(inviteId).get();
             const invitation = inviteDoc.exists ? inviteDoc.data() : null;
 
@@ -101,11 +89,9 @@ export async function POST(request: Request) {
                 teamId = invitation.teamId;
                 accountId = invitation.accountId;
                 userRole = invitation.role;
-
-                // Mark as accepted immediately or after user creation? 
-                // Let's keep existing flow: validate here, process after user doc creation options?
-                // Actually, we can just use the values here to init newUser, and update invite status later.
             } else {
+                // Invalid invite, but we can still create the user, just without the team connection?
+                // Or fail? Existing logic failed. Let's fail for now to match behavior.
                 return NextResponse.json(
                     { error: 'Invalid or expired invitation.' },
                     { status: 400 }
@@ -113,7 +99,7 @@ export async function POST(request: Request) {
             }
         }
 
-        const newUser: User & { passwordHash: string } = {
+        const newUser: User = {
             id: newUserId,
             name: null,
             email,
@@ -121,27 +107,17 @@ export async function POST(request: Request) {
             accountId: accountId || null,
             createdAt: Timestamp.now() as any,
             updatedAt: Timestamp.now() as any,
-            passwordHash
         };
 
-        console.log('Sign Up Debug: Creating user doc');
-        await getUserDoc(newUserId).set(newUser);
-        console.log('Sign Up Debug: User doc created');
-
-        let createdTeam: Team | null = null;
+        await userDocRef.set(newUser);
 
         if (inviteId && teamId) {
-            // Re-fetch invite to update status effectively (or just use ref from earlier if scope allowed)
-            // We know it exists and is pending from check above.
             const inviteQuery = await getInvitationsCollection().doc(inviteId).get();
             if (inviteQuery.exists) {
                 await inviteQuery.ref.update({ status: 'accepted' });
             }
 
             await logActivity(teamId, newUser.id, ActivityType.ACCEPT_INVITATION);
-
-            const tDoc = await getTeamDoc(teamId).get();
-            if (tDoc.exists) createdTeam = tDoc.data() as Team;
 
             const newTeamMemberId = getTeamMembersCollection().doc().id;
             const newTeamMember: TeamMember = {
@@ -153,17 +129,12 @@ export async function POST(request: Request) {
             };
             await getTeamMembersCollection().doc(newTeamMemberId).set(newTeamMember);
         }
-        // For non-invited users, we do NOT create a team or team member here.
-        // They will be redirected to onboarding to create their org and team.
-
-        const customToken = await adminAuth.createCustomToken(newUser.id);
 
         await setSession(newUser);
 
-        // Redirect to onboarding if no invite, otherwise dashboard
         const redirectUrl = inviteId ? '/dashboard' : '/onboarding';
 
-        return NextResponse.json({ success: true, redirectUrl, customToken });
+        return NextResponse.json({ success: true, redirectUrl });
 
     } catch (error: any) {
         console.error('Sign up error:', error);

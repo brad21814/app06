@@ -54,10 +54,18 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     setError('');
 
     try {
+      let userCredential;
+      if (mode === 'signin') {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      }
+
+      const idToken = await userCredential.user.getIdToken();
       const endpoint = mode === 'signin' ? '/api/auth/sign-in' : '/api/auth/sign-up';
+
       const body = {
-        email,
-        password,
+        idToken,
         redirect,
         priceId: priceId || undefined,
         inviteId: mode === 'signup' ? (inviteId || undefined) : undefined,
@@ -75,10 +83,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      if (data.customToken) {
-        await signInWithCustomToken(auth, data.customToken);
-      }
-
+      // Session established via cookie by API, just redirect
       if (data.redirectUrl) {
         router.push(data.redirectUrl);
       } else {
@@ -86,7 +91,14 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      setError(err.message || 'An error occurred. Please try again.');
+      // Map Firebase error codes to user-friendly messages if needed
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email is already in use.');
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password.');
+      } else {
+        setError(err.message || 'An error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -98,26 +110,48 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
 
-      // Check if user exists in Firestore
-      const userDoc = await getUser(result.user.uid);
+      // We use sign-in endpoint for Google Auth for simplicity, 
+      // but sign-up logic might be needed if they are new?
+      // Actually, if we use the sign-up endpoint, it checks if user exists and logs them in.
+      // IF we use sign-in endpoint, it requires user doc to exist.
+      // Safe bet: Use sign-up endpoint for Google Auth if we don't know?
+      // OR, try sign-in, if 404, try sign-up?
+      // Better: Use a dedicated /api/auth/google or just use sign-up which is idempotent-ish.
+      // My refactored sign-up logic: checks if user doc exists -> signs in.
+      // So sign-up is safe for existing users too.
+      // Let's use sign-up for Google Auth to ensure user doc creation.
 
-      if (!userDoc) {
-        // New user via Google
-        await createUser(result.user.uid, {
-          email: result.user.email!,
-          name: result.user.displayName || undefined,
-          photoURL: result.user.photoURL || undefined,
-          role: 'member',
-        });
-        const onboardingUrl = inviteId
-          ? `/onboarding?inviteId=${inviteId}`
-          : '/onboarding';
-        router.push(onboardingUrl);
-      } else {
-        // Existing user
-        router.push(redirect);
+      const endpoint = '/api/auth/sign-up';
+      // Note: sign-up schema expects idToken.
+
+      const body = {
+        idToken,
+        redirect,
+        inviteId: inviteId || undefined
+      };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        // If sign-up fails (maybe logic mismatch), try sign-in?
+        // But sign-up covers both.
+        const data = await response.json();
+        throw new Error(data.error || 'Google Sign In failed');
       }
+
+      const data = await response.json();
+      if (data.redirectUrl) {
+        router.push(data.redirectUrl);
+      } else {
+        router.refresh();
+      }
+
     } catch (err: any) {
       console.error('Google sign in error:', err);
       setError('Failed to sign in with Google.');
