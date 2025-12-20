@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import { AuthProvider } from '@/lib/firebase/auth-context';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'Next.js SaaS Starter',
@@ -27,6 +28,7 @@ export default function RootLayout({
       <body className="min-h-[100dvh] bg-gray-50">
         <AuthProvider>
           {children}
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

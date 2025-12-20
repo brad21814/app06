@@ -8,7 +8,7 @@ export interface User {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     deletedAt?: Timestamp | null;
-    passwordHash: string;
+
     accountId?: string | null;
     hasDismissedGettingStarted?: boolean;
 }

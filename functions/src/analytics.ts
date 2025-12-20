@@ -1,8 +1,12 @@
 import { onDocumentUpdated, FirestoreEvent } from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
+if (!getApps().length) {
+    initializeApp();
+}
 
-const db = admin.firestore();
+const db = getFirestore();
 
 export const onConnectionUpdate = onDocumentUpdated("connections/{connectionId}", async (event: FirestoreEvent<any>) => {
     const change = event.data;
@@ -39,20 +43,20 @@ export const onConnectionUpdate = onDocumentUpdated("connections/{connectionId}"
             entityId,
             entityType,
             period,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
         };
 
         // Increment Counters
         if (isNewCompletion) {
-            updateData.totalConnections = admin.firestore.FieldValue.increment(1);
-            updateData.completedConnections = admin.firestore.FieldValue.increment(1);
+            updateData.totalConnections = FieldValue.increment(1);
+            updateData.completedConnections = FieldValue.increment(1);
         }
         // Analysis Aggregation (Simplified: just moving average)
         // For MVP, we'll just store the sum and count in the analytics doc and divide on read?
         // Or better: store sumSentiment and countSentiment
         if (isNewAnalysis && newData.analysis?.sentimentScore) {
-            updateData.sumSentiment = admin.firestore.FieldValue.increment(newData.analysis.sentimentScore);
-            updateData.countSentiment = admin.firestore.FieldValue.increment(1);
+            updateData.sumSentiment = FieldValue.increment(newData.analysis.sentimentScore);
+            updateData.countSentiment = FieldValue.increment(1);
         }
 
         // For topics, we can increment counters in a map
@@ -60,7 +64,7 @@ export const onConnectionUpdate = onDocumentUpdated("connections/{connectionId}"
             newData.analysis.topics.forEach((topic: string) => {
                 // sanitize topic key
                 const key = topic.replace(/\s+/g, '_').toLowerCase();
-                updateData[`topics.${key}`] = admin.firestore.FieldValue.increment(1);
+                updateData[`topics.${key}`] = FieldValue.increment(1);
             });
         }
 

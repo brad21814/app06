@@ -7,13 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { DeveloperQuestions } from '@/components/DeveloperQuestions';
-import { 
-  Users, 
-  ArrowLeft, 
-  Share2, 
-  MessageSquare, 
+import {
+  Users,
+  ArrowLeft,
+  Share2,
+  MessageSquare,
   Copy,
   CheckCircle,
   Clock,
@@ -96,11 +96,10 @@ interface ConnectionSessionData {
 export default function QuestionRoomPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { toast } = useToast();
-  
+
   const sessionId = searchParams.get('sessionId');
   const roomId = searchParams.get('roomId'); // Legacy support
-  
+
   const [sessionData, setSessionData] = useState<ConnectionSessionData | null>(null);
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,7 +107,7 @@ export default function QuestionRoomPage() {
   const [isJoined, setIsJoined] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [sessionStarted, setSessionStarted] = useState(false);
-  
+
   const [sessionTime, setSessionTime] = useState(0);
 
   // Session timer effect
@@ -135,7 +134,7 @@ export default function QuestionRoomPage() {
         // Check authentication
         const authResponse = await fetch('/api/auth/me');
         if (!authResponse.ok) {
-          const currentUrl = sessionId 
+          const currentUrl = sessionId
             ? `/question-room?sessionId=${sessionId}`
             : `/question-room?roomId=${roomId}`;
           const loginUrl = `/sign-in?redirect=${encodeURIComponent(currentUrl)}&message=${encodeURIComponent('Please sign in to join your connection session')}`;
@@ -239,18 +238,15 @@ export default function QuestionRoomPage() {
         const updatedRoom = await roomResponse.json();
         setRoomData(updatedRoom);
         setIsJoined(true);
-        
-        toast({
-          title: "Joined Successfully",
+
+        toast.success("Joined Successfully", {
           description: "You've joined the connection session!",
         });
       }
     } catch (err) {
       console.error('Error joining room:', err);
-      toast({
-        title: "Join Failed",
+      toast.error("Join Failed", {
         description: err instanceof Error ? err.message : 'Failed to join room',
-        variant: "destructive",
       });
     }
   };
@@ -273,10 +269,8 @@ export default function QuestionRoomPage() {
       router.push('/dashboard');
     } catch (err) {
       console.error('Error leaving room:', err);
-      toast({
-        title: "Leave Failed", 
+      toast.error("Leave Failed", {
         description: err instanceof Error ? err.message : 'Failed to leave room',
-        variant: "destructive",
       });
     }
   };
@@ -287,16 +281,13 @@ export default function QuestionRoomPage() {
         ? `${window.location.origin}/question-room?sessionId=${sessionId}`
         : `${window.location.origin}/question-room?roomId=${roomId}`;
       await navigator.clipboard.writeText(shareUrl);
-      
-      toast({
-        title: "Link Copied",
+
+      toast.success("Link Copied", {
         description: "Connection session link copied to clipboard!",
       });
     } catch (err) {
-      toast({
-        title: "Share Failed",
+      toast.error("Share Failed", {
         description: "Could not copy link to clipboard",
-        variant: "destructive",
       });
     }
   };
@@ -315,16 +306,13 @@ export default function QuestionRoomPage() {
 
       setSessionStarted(true);
       setSessionTime(0);
-      toast({
-        title: "Session Started!",
+      toast.success("Session Started!", {
         description: "Your connection session has begun.",
       });
     } catch (err) {
       console.error('Error starting session:', err);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to start session",
-        variant: "destructive",
       });
     }
   };
@@ -332,8 +320,7 @@ export default function QuestionRoomPage() {
   const handleSessionComplete = async () => {
     if (!sessionId) {
       setSessionStarted(false);
-      toast({
-        title: "Session Complete!",
+      toast.success("Session Complete!", {
         description: "Great job completing all the questions together!",
       });
       return;
@@ -349,8 +336,7 @@ export default function QuestionRoomPage() {
       }
 
       setSessionStarted(false);
-      toast({
-        title: "Session Complete!",
+      toast.success("Session Complete!", {
         description: "Great job completing all the questions together!",
       });
 
@@ -360,10 +346,8 @@ export default function QuestionRoomPage() {
       }, 3000);
     } catch (err) {
       console.error('Error completing session:', err);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to mark session as complete",
-        variant: "destructive",
       });
     }
   };
@@ -403,8 +387,8 @@ export default function QuestionRoomPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button 
-              onClick={() => router.push('/dashboard')} 
+            <Button
+              onClick={() => router.push('/dashboard')}
               variant="outline"
               className="w-full"
             >
@@ -418,6 +402,8 @@ export default function QuestionRoomPage() {
 
   // If not joined, show join interface
   if (!isJoined) {
+    if (!roomData) return null; // Guard against null roomData
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-lg">
@@ -436,7 +422,7 @@ export default function QuestionRoomPage() {
               <p className="text-muted-foreground">{roomData.team?.name}</p>
               <Badge variant="secondary">{roomData.status}</Badge>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-3 flex items-center gap-2">
                 <Users className="w-4 h-4" />
@@ -457,15 +443,15 @@ export default function QuestionRoomPage() {
                         {participant.status} • {new Date(participant.joined_at).toLocaleTimeString()}
                       </p>
                     </div>
-                    <Badge variant="outline" size="sm">
+                    <Badge variant="outline">
                       {participant.status}
                     </Badge>
                   </div>
                 )) || (
-                  <p className="text-center text-muted-foreground py-4">
-                    No participants yet
-                  </p>
-                )}
+                    <p className="text-center text-muted-foreground py-4">
+                      No participants yet
+                    </p>
+                  )}
               </div>
             </div>
           </CardContent>
@@ -506,13 +492,13 @@ export default function QuestionRoomPage() {
                   {sessionData?.sessionType?.name || roomData?.challenge?.name || 'Connection Session'}
                 </h1>
                 <p className="text-muted-foreground text-sm">
-                  {sessionData 
+                  {sessionData
                     ? `${sessionData.userA.id === currentUser?.id ? sessionData.userB.name : sessionData.userA.name} • ${sessionData.org.name}`
                     : `${roomData?.team?.name} • ${roomData?.team?.organization?.name}`}
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Session Timer */}
               {sessionStarted && (
@@ -525,17 +511,17 @@ export default function QuestionRoomPage() {
                   </div>
                 </div>
               )}
-              
+
               <Badge variant={isJoined ? "default" : "secondary"}>
                 {isJoined ? "Joined" : "Not Joined"}
               </Badge>
-              
+
               <div className="flex items-center gap-2">
                 <Button onClick={handleShareRoom} variant="outline" size="sm">
                   <Share2 className="w-4 h-4 mr-2" />
                   Share Room
                 </Button>
-                
+
                 <Button onClick={handleLeaveRoom} variant="outline" size="sm">
                   Leave Room
                 </Button>
@@ -564,11 +550,11 @@ export default function QuestionRoomPage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {sessionData?.sessionType?.questionSet?.questions 
+                      {sessionData?.sessionType?.questionSet?.questions
                         ? `This session includes ${sessionData.sessionType.questionSet.questions.length} thoughtfully crafted questions from "${sessionData.sessionType.questionSet.name}".`
                         : 'This session includes thoughtfully crafted questions designed to help you learn about each other.'}
                     </p>
-                    <Button 
+                    <Button
                       onClick={handleSessionStart}
                       className="w-full"
                       disabled={!sessionId}
@@ -579,7 +565,7 @@ export default function QuestionRoomPage() {
                 </Card>
               )}
             </div>
-            
+
             {sessionStarted && sessionData?.sessionType?.questionSet?.questions && (
               <DeveloperQuestions
                 questions={sessionData.sessionType.questionSet.questions}
@@ -590,7 +576,7 @@ export default function QuestionRoomPage() {
                 className="w-full"
               />
             )}
-            
+
             {sessionStarted && !sessionData?.sessionType?.questionSet?.questions && (
               <Card>
                 <CardContent className="pt-6">
@@ -600,7 +586,7 @@ export default function QuestionRoomPage() {
                 </CardContent>
               </Card>
             )}
-            
+
             {!sessionStarted && (
               <Card>
                 <CardHeader>
@@ -637,7 +623,7 @@ export default function QuestionRoomPage() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Sample Questions Include:</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
@@ -661,7 +647,7 @@ export default function QuestionRoomPage() {
                   Participants
                 </CardTitle>
                 <CardDescription>
-                  {roomData.participants?.length || 0} team members
+                  {roomData?.participants?.length || 0} team members
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -678,7 +664,7 @@ export default function QuestionRoomPage() {
                           {sessionData.userA.name || sessionData.userA.email}
                         </p>
                         {sessionData.userA.id === currentUser?.id && (
-                          <Badge variant="outline" size="sm" className="mt-1">
+                          <Badge variant="outline" className="mt-1">
                             You
                           </Badge>
                         )}
@@ -695,7 +681,7 @@ export default function QuestionRoomPage() {
                           {sessionData.userB.name || sessionData.userB.email}
                         </p>
                         {sessionData.userB.id === currentUser?.id && (
-                          <Badge variant="outline" size="sm" className="mt-1">
+                          <Badge variant="outline" className="mt-1">
                             You
                           </Badge>
                         )}
@@ -704,27 +690,27 @@ export default function QuestionRoomPage() {
                   </>
                 ) : (
                   roomData?.participants?.map((participant) => (
-                  <div key={participant.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={participant.user.avatar_url} />
-                      <AvatarFallback>
-                        {participant.user.name?.charAt(0) || participant.user.email?.charAt(0) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">
-                        {participant.user.name || participant.user.email}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {participant.status}
-                      </p>
-                      {participant.user.id === currentUser?.id && (
-                        <Badge variant="outline" size="sm" className="mt-1">
-                          You
-                        </Badge>
-                      )}
+                    <div key={participant.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={participant.user.avatar_url} />
+                        <AvatarFallback>
+                          {participant.user.name?.charAt(0) || participant.user.email?.charAt(0) || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">
+                          {participant.user.name || participant.user.email}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {participant.status}
+                        </p>
+                        {participant.user.id === currentUser?.id && (
+                          <Badge variant="outline" className="mt-1">
+                            You
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
                   ))
                 )}
                 {!sessionData && !roomData?.participants?.length && (
@@ -732,12 +718,12 @@ export default function QuestionRoomPage() {
                     No participants yet
                   </p>
                 )}
-                
+
                 <div className="pt-3 border-t">
-                  <Button 
-                    onClick={handleShareRoom} 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    onClick={handleShareRoom}
+                    variant="outline"
+                    size="sm"
                     className="w-full"
                   >
                     <UserPlus className="w-4 h-4 mr-2" />
@@ -772,7 +758,7 @@ export default function QuestionRoomPage() {
                     )}
                     <div>
                       <strong>Status:</strong>
-                      <Badge variant="secondary" size="sm">{sessionData.status}</Badge>
+                      <Badge variant="secondary">{sessionData.status}</Badge>
                     </div>
                   </>
                 )}
@@ -790,7 +776,7 @@ export default function QuestionRoomPage() {
                     </div>
                     <div>
                       <strong>Status:</strong>
-                      <Badge variant="secondary" size="sm">{roomData.status}</Badge>
+                      <Badge variant="secondary">{roomData.status}</Badge>
                     </div>
                   </>
                 )}

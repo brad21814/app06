@@ -44,3 +44,5 @@ secrets/
 *.code-workspace
 
 firebase-data
+
+test-results/

@@ -1,5 +1,9 @@
 import { onRequest } from "firebase-functions/v2/https";
-import * as admin from "firebase-admin";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
+
+if (!getApps().length) initializeApp();
+const db = getFirestore();
 
 export const twilioTranscriptionWebhook = onRequest(async (req, res) => {
     try {
@@ -20,7 +24,7 @@ export const twilioTranscriptionWebhook = onRequest(async (req, res) => {
 
                 // We need to find the connection. 
                 // If we stored transcriptSid in the connection doc, we can query by it.
-                const connectionsRef = admin.firestore().collection('connections');
+                const connectionsRef = db.collection('connections');
                 const snapshot = await connectionsRef.where('transcriptSid', '==', transcriptSid).limit(1).get();
 
                 if (!snapshot.empty) {
@@ -35,8 +39,8 @@ export const twilioTranscriptionWebhook = onRequest(async (req, res) => {
                         status: 'completed',
                         text: data.text,
                         sentences: data.sentences, // Store detailed sentences if needed
-                        dateCreated: admin.firestore.Timestamp.now(),
-                        dateUpdated: admin.firestore.Timestamp.now(),
+                        dateCreated: Timestamp.now(),
+                        dateUpdated: Timestamp.now(),
                     });
 
                     // Update main connection doc

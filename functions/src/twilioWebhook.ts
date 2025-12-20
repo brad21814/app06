@@ -1,7 +1,10 @@
 import { onRequest } from "firebase-functions/v2/https";
-import * as admin from "firebase-admin";
-import { Timestamp } from "firebase-admin/firestore";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import twilio from "twilio";
+
+if (!getApps().length) initializeApp();
+const db = getFirestore();
 
 export const twilioWebhook = onRequest(async (req, res) => {
     try {
@@ -35,10 +38,6 @@ export const twilioWebhook = onRequest(async (req, res) => {
             }
         }
 
-
-
-
-        // Handle specific events
         // Handle specific events
 
         // 1. Composition Available -> Trigger Transcription
@@ -52,7 +51,7 @@ export const twilioWebhook = onRequest(async (req, res) => {
             console.log(`[TwilioWebhook] Composition Available: ${compositionSid} for Room: ${roomSid}`);
 
             // Find the connection associated with this Room
-            const connectionsRef = admin.firestore().collection('connections');
+            const connectionsRef = db.collection('connections');
             const snapshot = await connectionsRef.where('connectRoomSid', '==', roomSid).limit(1).get();
 
             if (!snapshot.empty) {
@@ -111,7 +110,7 @@ export const twilioWebhook = onRequest(async (req, res) => {
             if (roomName && roomName.startsWith('connect-')) {
                 const connectionId = roomName.replace('connect-', '');
 
-                const connectionRef = admin.firestore().collection('connections').doc(connectionId);
+                const connectionRef = db.collection('connections').doc(connectionId);
                 const connectionSnap = await connectionRef.get();
 
                 if (connectionSnap.exists) {

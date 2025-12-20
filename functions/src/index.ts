@@ -1,16 +1,18 @@
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onRequest } from "firebase-functions/v2/https";
-import * as admin from "firebase-admin";
-import { Timestamp } from "firebase-admin/firestore";
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import { emailService } from "./email";
 import { GoogleVideoService } from "./services/googleVideo";
 
 
-admin.initializeApp({
-    storageBucket: process.env.STORAGE_BUCKET || 'komandra-app06.firebasestorage.app'
-});
-const db = admin.firestore();
+if (!getApps().length) {
+    initializeApp({
+        storageBucket: process.env.STORAGE_BUCKET || 'komandra-app06.firebasestorage.app'
+    });
+}
+const db = getFirestore();
 
 // Helper to calculate next run date
 const getNextRunDate = (currentDate: Date, frequency: string): Date => {
