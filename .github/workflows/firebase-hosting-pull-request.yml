@@ -19,3 +19,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOMANDRA_APP06 }}
           projectId: komandra-app06
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
