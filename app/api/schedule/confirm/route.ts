@@ -5,6 +5,7 @@ import { emailService } from '@/lib/email';
 import * as ics from 'ics';
 
 export async function POST(req: NextRequest) {
+    console.log('POST /api/schedule/confirm');
     try {
         const { connectionId, confirmedTime } = await req.json();
 

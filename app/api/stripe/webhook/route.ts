@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: NextRequest) {
+  console.log('POST /api/stripe/webhook');
   const payload = await request.text();
   const signature = request.headers.get('stripe-signature') as string;
 

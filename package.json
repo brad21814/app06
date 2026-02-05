@@ -8,7 +8,10 @@
     "emulator:stop": "lsof -t -i:8080 -i:9099 -i:4000 -i:4400 -i:4500 -i:9150 | xargs -r kill -9",
     "build": "next build",
     "start": "next start",
-    "firestore:seed": "FIRESTORE_EMULATOR_HOST=localhost:8080 GCLOUD_PROJECT=komandra-app06 npx tsx lib/firestore/seed.ts"
+    "firestore:seed": "FIRESTORE_EMULATOR_HOST=localhost:8080 GCLOUD_PROJECT=komandra-app06 npx tsx lib/firestore/seed.ts",
+    "stop": "npm run emulator:stop && lsof -t -i:3000 -i:3001 | xargs -r kill -9",
+    "start:local": "./scripts/ngrok-start.sh && npm run emulator:start && npm run dev:emulator",
+    "stop:local": "./scripts/ngrok-stop.sh && npm run emulator:stop && lsof -t -i:3000 -i:3001 | xargs -r kill -9"
   },
   "dependencies": {
     "@playwright/test": "^1.57.0",

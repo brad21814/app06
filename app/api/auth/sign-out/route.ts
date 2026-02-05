@@ -23,6 +23,7 @@ async function logActivity(
 }
 
 export async function POST() {
+    console.log('POST /api/auth/sign-out');
     try {
         // Note: getUser uses client SDK queries which might not work in API route if not authenticated via client SDK
         // But here we are in API route, we should verify session cookie manually or use middleware.

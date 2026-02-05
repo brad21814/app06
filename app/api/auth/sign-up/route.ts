@@ -41,6 +41,7 @@ async function logActivity(
 }
 
 export async function POST(request: Request) {
+    console.log('POST /api/auth/sign-up');
     try {
         const body = await request.json();
         const result = signUpSchema.safeParse(body);

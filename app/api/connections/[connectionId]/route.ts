@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase/server';
 import { Timestamp } from 'firebase-admin/firestore';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ connectionId: string }> }) {
+    console.log('GET /api/connections/[connectionId]');
     try {
         const session = await getSession();
         if (!session || !session.user) {

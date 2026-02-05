@@ -10,6 +10,7 @@ import {
 import { Timestamp } from 'firebase-admin/firestore';
 
 export async function GET(request: NextRequest) {
+  console.log('GET /api/stripe/checkout');
   const searchParams = request.nextUrl.searchParams;
   const sessionId = searchParams.get('session_id');
 

@@ -137,9 +137,7 @@ npx playwright codegen http://localhost:3000/sign-up
 
 
 
-# App06
-
-## Local Development Guide
+## Local Development
 
 ### Prerequisites
 
@@ -148,37 +146,50 @@ npx playwright codegen http://localhost:3000/sign-up
 3.  **Google Cloud SDK**: [Install gcloud](https://cloud.google.com/sdk/docs/install)
 4.  **ngrok**: [Install ngrok](https://ngrok.com/download)
 
-### Authentication logic
+### Initial Setup
 
-To allow the local emulator functions to access Google Cloud APIs (Video Intelligence, Cloud Tasks), you must authenticate with Application Default Credentials (ADC):
+1. **Authenticate ngrok**:
+   Get your authtoken from the [ngrok dashboard](https://dashboard.ngrok.com/get-started/your-authtoken) and run:
+   ```bash
+   ngrok config add-authtoken <YOUR_TOKEN>
+   ```
 
-```bash
-gcloud auth application-default login
-```
+2. **Authenticate with Google Cloud**:
+   Required for local functions to access Google Cloud APIs (Video Intelligence, Cloud Tasks).
+   ```bash
+   gcloud auth application-default login
+   ```
 
-This will open a browser to authenticate. Ensure you use the account associated with your GCP project.
+3. **Authenticate Firebase CLI**:
+   Required for the emulators to run with correct project configuration.
+   ```bash
+   firebase login
+   ```
 
 ### Startup Sequence
 
-To start the full local environment (Frontend + Emulators + Webhook Tunnel), run the following commands in separate terminals:
+To start the full local environment (Frontend + Emulators + Webhook Tunnel) in a single command:
 
-1.  **Start ngrok Tunnel**:
-    ```bash
-    ./scripts/start-ngrok-functions.sh
-    ```
-    *(Exposes local functions to the internet for Twilio callbacks)*
+```bash
+npm run start:local
+```
 
-2.  **Start Firebase Emulators**:
-    ```bash
-    npm run emulator:start
-    ```
-    *(Runs Firestore, Functions, Pub/Sub emulators)*
+This command will:
+1. Start an ngrok tunnel pointing to your local functions.
+2. Automatically update `.env` files with the new public `ngrok` URL.
+3. Start the Firebase Emulators (Firestore, Functions, Pub/Sub, Auth).
+4. Start the Next.js frontend dev server.
 
-3.  **Start Frontend Dev Server**:
-    ```bash
-    npm run dev:emulator
-    ```
-    *(Runs Next.js on localhost:3000)*
+- **App**: [http://localhost:3000](http://localhost:3000)
+- **Emulator UI**: [http://localhost:4000](http://localhost:4000)
+
+### Stopping
+
+To stop all services and clean up processes:
+
+```bash
+npm run stop:local
+```
 
 
 

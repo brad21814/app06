@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase/server';
 import { TwilioService } from '@/lib/twilio';
 
 export async function POST(req: NextRequest) {
+    console.log('POST /api/twilio/token');
     try {
         const session = await getSession();
         if (!session || !session.user || !session.user.id) {

@@ -4,6 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { emailService } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
+    console.log('POST /api/schedule/propose');
     try {
         const { connectionId, proposedTimes } = await req.json();
 

@@ -37,6 +37,7 @@ async function logActivity(
 }
 
 export async function POST(request: Request) {
+    console.log('POST /api/auth/sign-in');
     try {
         const body = await request.json();
         const result = signInSchema.safeParse(body);

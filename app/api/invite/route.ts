@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { emailService } from '@/lib/email';
 
 export async function POST(request: Request) {
+    console.log('POST /api/invite');
     try {
         const body = await request.json();
         const { email, role, teamId, accountId, invitedBy } = body;

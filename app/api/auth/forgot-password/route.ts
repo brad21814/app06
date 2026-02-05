@@ -11,6 +11,7 @@ const forgotPasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
+    console.log('POST /api/auth/forgot-password');
     try {
         const body = await request.json();
         const result = forgotPasswordSchema.safeParse(body);

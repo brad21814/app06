@@ -14,6 +14,7 @@ const resetPasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
+    console.log('POST /api/auth/reset-password');
     try {
         const body = await request.json();
         const result = resetPasswordSchema.safeParse(body);
