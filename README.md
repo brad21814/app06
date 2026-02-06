@@ -201,6 +201,29 @@ Ensure your `.env.local` includes:
 - `TWILIO_AUTH_TOKEN`
 - `NEXT_PUBLIC_FIREBASE_Config`
 
+### Google Secret Manager
+
+Commands to manage string-based secrets using `gcloud`.
+
+**List Secrets**
+```bash
+gcloud secrets list
+```
+
+**Create a Secret**
+```bash
+# 1. Create the secret (container)
+gcloud secrets create MY_SECRET_NAME --replication-policy="automatic"
+
+# 2. Add a secret version (the value)
+echo -n "my-super-secret-value" | gcloud secrets versions add MY_SECRET_NAME --data-file=-
+```
+
+**Delete a Secret**
+```bash
+gcloud secrets delete MY_SECRET_NAME
+```
+
 ## Deployment
 
 ### Deploying All Resources (Recommended)
