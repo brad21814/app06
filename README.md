@@ -196,10 +196,37 @@ npm run stop:local
 
 ### Environment Variables
 
-Ensure your `.env.local` includes:
-- `TWILIO_account_SID`
-- `TWILIO_AUTH_TOKEN`
-- `NEXT_PUBLIC_FIREBASE_Config`
+The application relies on several environment variables for configuration, authentication, and third-party integrations.
+
+#### Client-Side (Next.js Frontend)
+These variables are exposed to the browser prefixed with `NEXT_PUBLIC_`. They are primarily for Firebase initialization and public app configuration.
+
+- `NEXT_PUBLIC_APP_URL`: The base URL of the application (e.g., `http://localhost:3000`).
+- `NEXT_PUBLIC_FIREBASE_API_KEY`: Firebase project API Key.
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Firebase Auth Domain.
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Firebase Project ID.
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`: Firebase Storage Bucket.
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`: Firebase Messaging Sender ID.
+- `NEXT_PUBLIC_FIREBASE_APP_ID`: Firebase App ID.
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`: Firebase Measurement ID.
+
+#### Server-Side (Next.js & App Hosting)
+These variables are **secret** and only available in the server environment (API Routes, Server Actions, App Hosting backend).
+
+- `AUTH_SECRET`: Random string for encrypting session cookies.
+- `STRIPE_SECRET_KEY`: Stripe API Secret Key (`sk_...`).
+- `STRIPE_WEBHOOK_SECRET`: Secret for verifying Stripe webhooks (`whsec_...`).
+- `TWILIO_ACCOUNT_SID`: Twilio Account SID.
+- `TWILIO_AUTH_TOKEN`: Twilio Auth Token.
+- `TWILIO_API_KEY`: Twilio Standard API Key (SID).
+- `TWILIO_API_SECRET`: Twilio Standard API Secret.
+- `POSTMARK_SERVER_API_TOKEN`: Postmark Server API Token for emails.
+- `POSTMARK_FROM_ADDRESS`: Default sender email address.
+
+#### Cloud Functions
+Standalone Cloud Functions (in `functions/`) generally require the same **Server-Side** secrets if they interact with these services.
+- **Local Dev**: Use `.env` or `setup_env.sh` to load these.
+- **Production**: Map secrets in `apphosting.yaml` or use Secret Manager directly.
 
 ### Google Secret Manager
 
