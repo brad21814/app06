@@ -57,3 +57,22 @@ env:
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
   - variable: AUTH_SECRET
     secret: secretAuthSecret
+  - variable: TWILIO_API_KEY
+    secret: secretTwilioApiKey
+  - variable: TWILIO_API_SECRET
+    secret: secretTwilioApiSecret
+  - variable: TWILIO_ACCOUNT_SID
+    secret: secretTwilioAccountSid
+  - variable: TWILIO_AUTH_TOKEN
+    secret: secretTwilioAuthToken
+  - variable: POSTMARK_SERVER_API_TOKEN
+    secret: secretPostmarkServerApiKey
+  - variable: POSTMARK_FROM_ADDRESS
+    value: bradmurdoch@gmail.com
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: STRIPE_SECRET_KEY
+    secret: secretStripeSecretKey
+  - variable: STRIPE_WEBHOOK_SECRET
+    secret: secretStripeWebhookSecret
