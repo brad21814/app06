@@ -14,8 +14,8 @@ export const twilioWebhook = onRequest(async (req, res) => {
         let url = "";
         if (process.env.FUNCTION_REGION && process.env.GCLOUD_PROJECT) {
             url = `https://${process.env.FUNCTION_REGION}-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/twilioWebhook`;
-        } else if (process.env.CLOUD_FUNCTIONS_URL) {
-            url = `${process.env.CLOUD_FUNCTIONS_URL}twilioWebhook`;
+        } else if (process.env.FUNCTIONS_URL) {
+            url = `${process.env.FUNCTIONS_URL}/twilioWebhook`;
         }
 
         const event = req.body;

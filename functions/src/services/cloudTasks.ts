@@ -18,7 +18,7 @@ export class CloudTasksService {
         if (!project) throw new Error("Project ID not found");
 
         const parent = client.queuePath(project, location, queue);
-        const url = `${process.env.CLOUD_FUNCTIONS_URL}transcriptionTask`; // The HTTPS function URL
+        const url = `${process.env.FUNCTIONS_URL}/transcriptionTask`; // The HTTPS function URL
 
         const payload = {
             connectionId,
