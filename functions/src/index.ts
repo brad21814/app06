@@ -44,7 +44,7 @@ async function runScheduleCheck() {
     try {
         const now = Timestamp.now();
         const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }); // e.g., "Monday"
-        const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
         // 1. Query active schedules due for a run
         const schedulesSnapshot = await db.collection('schedules')
@@ -113,7 +113,7 @@ async function runScheduleCheck() {
                 const connectionId = connectionRef.id;
 
                 const roomUniqueName = `connect-${connectionId}`;
-                const connectRoomUrl = `${BASE_URL}/connect/${connectionId}`;
+                const connectRoomUrl = `${APP_URL}/connect/${connectionId}`;
 
                 batch.set(connectionRef, {
                     scheduleId,
@@ -136,7 +136,7 @@ async function runScheduleCheck() {
                 const confirmer = usersMap.get(pair.confirmerId);
 
                 if (proposer && proposer.email) {
-                    const connectionUrl = `${BASE_URL}/schedule/${connectionId}`;
+                    const connectionUrl = `${APP_URL}/schedule/${connectionId}`;
                     await emailService.sendConnectionRequestEmail(
                         proposer.email,
                         proposer.name,
