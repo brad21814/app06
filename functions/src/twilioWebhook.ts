@@ -12,13 +12,14 @@ export const twilioWebhook = onRequest(async (req, res) => {
         const authToken = process.env.TWILIO_AUTH_TOKEN;
 
         let url = "";
-        if (process.env.FUNCTION_REGION && process.env.GCLOUD_PROJECT) {
-            url = `https://${process.env.FUNCTION_REGION}-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/twilioWebhook`;
-        } else if (process.env.FUNCTIONS_URL) {
-            url = `${process.env.FUNCTIONS_URL}/twilioWebhook`;
-        }
+        // if (process.env.FUNCTION_REGION && process.env.GCLOUD_PROJECT) {
+        //     url = `https://${process.env.FUNCTION_REGION}-${process.env.GCLOUD_PROJECT}.cloudfunctions.net/twilioWebhook`;
+        // } else if (process.env.FUNCTIONS_URL) {
+        url = `${process.env.FUNCTIONS_URL}twilioWebhook`;
+        // }
 
         const event = req.body;
+        console.log(`[TwilioWebhook] Validating against URL: ${url}`);
         console.log(`[TwilioWebhook] Received event: ${event.StatusCallbackEvent || event.EventType}`);
         console.log(`[TwilioWebhook] Payload:`, JSON.stringify(event, null, 2));
 

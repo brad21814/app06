@@ -104,14 +104,14 @@ update_env_var() {
 }
 
 echo "📝 Updating Environment Variables..."
-update_env_var "$FUNCTIONS_ENV" "CLOUD_FUNCTIONS_URL" "$FULL_URL"
+update_env_var "$FUNCTIONS_ENV" "FUNCTIONS_URL" "$FULL_URL"
 
 # Inject Storage Bucket
 update_env_var "$FUNCTIONS_ENV" "STORAGE_BUCKET" "komandra-app06.firebasestorage.app"
 
 # Inject Credentials Path (Ensure absolute path)
 update_env_var "$FUNCTIONS_ENV" "GOOGLE_APPLICATION_CREDENTIALS" "$HOME/.config/gcloud/application_default_credentials.json"
-update_env_var "$FRONTEND_ENV" "CLOUD_FUNCTIONS_URL" "$FULL_URL"
+update_env_var "$FRONTEND_ENV" "FUNCTIONS_URL" "$FULL_URL"
 
 echo ""
 echo "---------------------------------------------------"
