@@ -98,8 +98,8 @@ export class TwilioService {
                 recordParticipantsOnConnect: true,
                 unusedRoomTimeout: 5, // Room closes if no one joins in 5 mins
                 emptyRoomTimeout: 1,  // Room closes 1 min after last person leaves
-                ...(process.env.CLOUD_FUNCTIONS_URL ? {
-                    statusCallback: `${process.env.CLOUD_FUNCTIONS_URL}twilioWebhook`,
+                ...(process.env.FUNCTIONS_URL ? {
+                    statusCallback: `${process.env.FUNCTIONS_URL}twilioWebhook`,
                     statusCallbackMethod: 'POST'
                 } : {})
             });

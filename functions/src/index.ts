@@ -44,7 +44,11 @@ async function runScheduleCheck() {
     try {
         const now = Timestamp.now();
         const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }); // e.g., "Monday"
-        const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+
+        console.log(`Running Schedule Check Logic for ${today}...`);
+        console.log(`Current Time: ${now.toDate().toISOString()}`);
+        console.log(`App URL: ${APP_URL}`);
 
         // 1. Query active schedules due for a run
         const schedulesSnapshot = await db.collection('schedules')

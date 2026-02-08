@@ -194,6 +194,34 @@ npm run stop:local
 
 
 
+### Environment Setup
+
+#### App Hosting Configuration (`apphosting.yaml`)
+
+`apphosting.yaml` contains environment definitions for Firebase App Hosting backends.
+
+**Step 1: Set Environment name**
+
+Each App Hosting backend has an Environment name setting. This field is used to map your backend to an environment-specific configuration file (e.g., `apphosting.staging.yaml`) and can be changed at any time. You can only set one environment name per backend.
+
+To set your backend's environment name:
+
+1. In the Firebase console, select your project.
+2. Select **App Hosting** from the left nav.
+3. Click **View dashboard** on your chosen backend.
+4. In the **Settings** tab, select **Environment**.
+5. Under **Environment name**, enter the name of your environment (e.g., `staging` or `prod`).
+6. Click **Save**.
+
+When an App Hosting rollout is triggered for your backend (either on git push or manually through the console), App Hosting will check for an `apphosting.ENVIRONMENT_NAME.yaml` file before falling back to `apphosting.yaml`.
+
+#### Local Environment Files
+
+- **`.env`**: Contains environment variables for the local instance of Next.js.
+- **`functions/.env`**: Contains environment variables for locally running Cloud Functions.
+- **`functions/.env.[project-id]`** (e.g., `functions/.env.komandra-app06`): Contains project-specific environment variables for Cloud Functions.
+  > **Note**: We are in the process of migrating sensitive values from these files to Google Cloud Secrets.
+
 ### Environment Variables
 
 The application relies on several environment variables for configuration, authentication, and third-party integrations.
