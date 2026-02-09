@@ -1,12 +1,15 @@
+import 'server-only';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
 import {
     getUsersCollection,
+    getTeamsCollection,
     getTeamMembersCollection,
+    getActivityLogsCollection,
     getUserDoc,
     getTeamDoc
 } from './collections';
-import { User } from '@/types/firestore';
+import { User, Team, ActivityLog } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
     const sessionCookie = (await cookies()).get('session');
@@ -39,46 +42,95 @@ export async function getUser(): Promise<User | null> {
     return null;
 }
 
-export async function getTeamForUser() {
-    console.log('getTeamForUser: Starting...');
+export async function getTeamByStripeCustomerId(customerId: string): Promise<Team | null> {
+    const snapshot = await getTeamsCollection()
+        .where('stripeCustomerId', '==', customerId)
+        .limit(1)
+        .get();
+
+    return snapshot.empty ? null : snapshot.docs[0].data();
+}
+
+export async function updateTeamSubscription(
+    teamId: string,
+    subscriptionData: {
+        stripeSubscriptionId: string | null;
+        stripeProductId: string | null;
+        planName: string | null;
+        subscriptionStatus: string;
+    }
+) {
+    await getTeamDoc(teamId).update({
+        ...subscriptionData,
+        updatedAt: new Date() as any
+    });
+}
+
+export async function getUserWithTeam(userId: string) {
+    const userDoc = await getUserDoc(userId).get();
+    if (!userDoc.exists) return null;
+    const user = userDoc.data();
+
+    const snapshot = await getTeamMembersCollection()
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+    const teamId = snapshot.empty ? null : snapshot.docs[0].data().teamId;
+
+    return { user, teamId };
+}
+
+export async function getActivityLogs(): Promise<(ActivityLog & { userName: string })[]> {
     const user = await getUser();
     if (!user) {
-        console.log('getTeamForUser: No authenticated user found.');
+        throw new Error('User not authenticated');
+    }
+
+    const snapshot = await getActivityLogsCollection()
+        .where('userId', '==', user.id)
+        .orderBy('timestamp', 'desc')
+        .limit(10)
+        .get();
+
+    const logs = snapshot.docs.map((doc) => doc.data());
+
+    const logsWithNames = await Promise.all(logs.map(async (log) => {
+        let userName = 'Unknown';
+        if (log.userId) {
+            const u = await getUserDoc(log.userId).get();
+            if (u.exists) userName = u.data()?.name || 'Unknown';
+        }
+        return { ...log, userName };
+    }));
+
+    return logsWithNames;
+}
+
+export async function getTeamForUser() {
+    const user = await getUser();
+    if (!user) {
         return null;
     }
-    console.log(`getTeamForUser: User found: ${user.id} (${user.email})`);
 
     const snapshot = await getTeamMembersCollection()
         .where('userId', '==', user.id)
         .limit(1)
         .get();
 
-    console.log(`getTeamForUser: Team member query result empty? ${snapshot.empty}`);
-
     if (snapshot.empty) return null;
 
     const teamMember = snapshot.docs[0].data();
-    console.log(`getTeamForUser: Found team member record, teamId: ${teamMember.teamId}`);
-
     const teamDoc = await getTeamDoc(teamMember.teamId).get();
-
-    if (!teamDoc.exists) {
-        console.log('getTeamForUser: Team document does not exist.');
-        return null;
-    }
+    if (!teamDoc.exists) return null;
 
     const team = teamDoc.data();
-    if (!team) {
-        console.log('getTeamForUser: Team data is empty.');
-        return null;
-    }
+    if (!team) return null;
 
     // Fetch all team members
     const membersSnapshot = await getTeamMembersCollection()
         .where('teamId', '==', team.id)
         .get();
-
-    console.log(`getTeamForUser: Found ${membersSnapshot.size} members for team ${team.id}`);
 
     const teamMembers = membersSnapshot.docs.map(d => d.data());
 

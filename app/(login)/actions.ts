@@ -11,21 +11,11 @@ import {
   getUserDoc,
   getTeamDoc,
   getInvitationsCollection as getInvitesCol, // Alias to avoid conflict if needed
-} from '@/lib/firestore/client/collections';
+} from '@/lib/firestore/admin/collections';
 import {
-  addDoc,
-  getDocs,
-  query,
-  where,
-  limit,
-  updateDoc,
-  doc,
-  deleteDoc,
-  Timestamp,
-  setDoc,
-  getDoc
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+  Timestamp
+} from 'firebase-admin/firestore';
+import { db } from '@/lib/firebase/config'; // Keep for now if needed, but likely removing
 import {
   User,
   Team,
@@ -39,14 +29,14 @@ import { setSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createCheckoutSession } from '@/lib/payments/stripe';
-import { getUser, getUserWithTeam } from '@/lib/firestore/client/queries';
+import { getUser, getUserWithTeam } from '@/lib/firestore/admin/queries';
 import {
   validatedAction,
   validatedActionWithUser
 } from '@/lib/auth/middleware';
 import { emailService } from '@/lib/email';
 import { randomBytes } from 'crypto';
-import { adminAuth } from '@/lib/firebase/server';
+import { adminAuth, adminDb } from '@/lib/firebase/server';
 
 async function logActivity(
   teamId: string | null | undefined,
@@ -61,10 +51,10 @@ async function logActivity(
     teamId,
     userId,
     action: type,
-    timestamp: Timestamp.now(),
+    timestamp: Timestamp.now() as any,
     ipAddress: ipAddress || ''
   };
-  await addDoc(getActivityLogsCollection(), newActivity as any);
+  await getActivityLogsCollection().add(newActivity as any);
 }
 
 // Migrated to /api/auth/sign-in
@@ -118,17 +108,21 @@ export const deleteAccount = validatedActionWithUser(
     );
 
     // Soft delete
-    await updateDoc(getUserDoc(user.id), {
-      deletedAt: Timestamp.now(),
+    await getUserDoc(user.id).update({
+      deletedAt: Timestamp.now() as any,
       email: `${user.email}-${user.id}-deleted`
     });
 
     if (userWithTeam?.teamId) {
-      const q = query(getTeamMembersCollection(), where('userId', '==', user.id), where('teamId', '==', userWithTeam.teamId));
-      const snapshot = await getDocs(q);
-      snapshot.forEach(async (d) => {
-        await deleteDoc(d.ref);
-      });
+      const snapshot = await getTeamMembersCollection()
+        .where('userId', '==', user.id)
+        .where('teamId', '==', userWithTeam.teamId)
+        .get();
+
+      const batch = adminDb.batch(); // or loop deletes
+      // For simplicity loop:
+      const deletePromises = snapshot.docs.map(d => d.ref.delete());
+      await Promise.all(deletePromises);
     }
 
     (await cookies()).delete('session');
@@ -149,7 +143,7 @@ export const updateAccount = validatedActionWithUser(
 
     try {
       await Promise.all([
-        updateDoc(getUserDoc(user.id), { name, email }),
+        getUserDoc(user.id).update({ name, email }),
         adminAuth.updateUser(user.id, { email }),
         logActivity(userWithTeam?.teamId, user.id, ActivityType.UPDATE_ACCOUNT)
       ]);
@@ -179,12 +173,12 @@ export const removeTeamMember = validatedActionWithUser(
     }
 
     // Verify member belongs to team
-    const memberDoc = await getDoc(doc(getTeamMembersCollection(), memberId));
-    if (!memberDoc.exists() || memberDoc.data().teamId !== userWithTeam.teamId) {
+    const memberDoc = await getTeamMembersCollection().doc(memberId).get();
+    if (!memberDoc.exists || memberDoc.data()?.teamId !== userWithTeam.teamId) {
       return { error: 'Member not found or not in your team' };
     }
 
-    await deleteDoc(doc(getTeamMembersCollection(), memberId));
+    await getTeamMembersCollection().doc(memberId).delete();
 
     await logActivity(
       userWithTeam.teamId,
@@ -212,51 +206,60 @@ export const inviteTeamMember = validatedActionWithUser(
     }
 
     // Check if user already exists and is in team
-    const userQ = query(getUsersCollection(), where('email', '==', email), limit(1));
-    const userSnap = await getDocs(userQ);
+    const userSnap = await getUsersCollection()
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
     if (!userSnap.empty) {
       const existingUser = userSnap.docs[0].data();
-      const memberQ = query(getTeamMembersCollection(), where('userId', '==', existingUser.id), where('teamId', '==', userWithTeam.teamId), limit(1));
-      const memberSnap = await getDocs(memberQ);
+      const memberSnap = await getTeamMembersCollection()
+        .where('userId', '==', existingUser.id)
+        .where('teamId', '==', userWithTeam.teamId)
+        .limit(1)
+        .get();
+
       if (!memberSnap.empty) {
         return { error: 'User is already a member of this team' };
       }
     }
 
     // Check for existing invitation
-    const inviteQ = query(
-      getInvitationsCollection(),
-      where('email', '==', email),
-      where('teamId', '==', userWithTeam.teamId),
-      where('status', '==', 'pending'),
-      limit(1)
-    );
-    const inviteSnap = await getDocs(inviteQ);
+    const inviteSnap = await getInvitationsCollection()
+      .where('email', '==', email)
+      .where('teamId', '==', userWithTeam.teamId)
+      .where('status', '==', 'pending')
+      .limit(1)
+      .get();
 
     if (!inviteSnap.empty) {
       return { error: 'An invitation has already been sent to this email' };
     }
 
     // Get Account ID from Team
-    const teamDoc = await getDoc(getTeamDoc(userWithTeam.teamId));
-    if (!teamDoc.exists()) {
+    const teamDoc = await getTeamDoc(userWithTeam.teamId).get();
+    if (!teamDoc.exists) {
       return { error: 'Team data not found' };
     }
     const teamData = teamDoc.data();
 
+    if (!teamData) {
+      return { error: 'Team data is empty' };
+    }
+
     // Create a new invitation
-    const newInviteId = doc(getInvitationsCollection()).id;
+    const newInviteRef = getInvitationsCollection().doc();
     const newInvite: Invitation = {
-      id: newInviteId,
+      id: newInviteRef.id,
       teamId: userWithTeam.teamId,
       accountId: teamData.accountId,
       email,
       role,
       invitedBy: user.id,
-      createdAt: Timestamp.now(),
+      createdAt: Timestamp.now() as any,
       status: 'pending'
     };
-    await setDoc(doc(getInvitationsCollection(), newInviteId), newInvite);
+    await newInviteRef.set(newInvite);
 
     await logActivity(
       userWithTeam.teamId,
@@ -265,7 +268,7 @@ export const inviteTeamMember = validatedActionWithUser(
     );
 
     // Send invitation email
-    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?inviteId=${newInviteId}`;
+    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?inviteId=${newInviteRef.id}`;
     await emailService.sendInviteEmail(email, user.name || user.email, inviteLink);
 
     return { success: 'Invitation sent successfully' };

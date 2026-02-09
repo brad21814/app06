@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TeamDataWithMembers, User } from '@/types/firestore';
-import { getTeamForUser, getUser } from '@/lib/firestore/client/queries';
+import { getTeamForUser, getUser } from '@/lib/firestore/admin/queries';
 import { redirect } from 'next/navigation';
 
 export type ActionState = {
