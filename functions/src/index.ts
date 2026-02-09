@@ -213,7 +213,7 @@ export const transcriptionTask = onRequest(async (req, res) => {
     // we often leave it open or check a custom header. 
     // Let's proceed with logic.
 
-    const { connectionId, operationName } = req.body;
+    const { connectionId, operationName, outputUri } = req.body;
 
     if (!connectionId || !operationName) {
         console.error("Missing connectionId or operationName in task payload");
@@ -224,11 +224,11 @@ export const transcriptionTask = onRequest(async (req, res) => {
     console.log(`[TranscriptionTask] Checking operation ${operationName} for connection ${connectionId}`);
 
     try {
-        const result = await GoogleVideoService.checkOperationStatus(operationName);
+        const result = await GoogleVideoService.checkOperationStatus(operationName, outputUri);
 
         if (result) {
             console.log(`[TranscriptionTask] Transcription complete for connection ${connectionId}`);
-
+            //The transcription is completed now.
             await db.collection('connections').doc(connectionId).update({
                 transcriptStatus: 'completed',
                 transcript: result
@@ -237,7 +237,7 @@ export const transcriptionTask = onRequest(async (req, res) => {
         } else {
             console.log(`[TranscriptionTask] Job ${operationName} still running. Re-enqueuing...`);
             // Re-enqueue task for 1 minute later
-            await CloudTasksService.createTranscriptionCheckTask(connectionId, operationName, 60);
+            await CloudTasksService.createTranscriptionCheckTask(connectionId, operationName, 60, outputUri);
             res.status(200).send("Re-enqueued");
         }
     } catch (error) {

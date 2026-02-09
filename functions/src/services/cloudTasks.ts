@@ -10,7 +10,7 @@ export class CloudTasksService {
      * @param operationName The Google Video Intelligence operation name.
      * @param delaySeconds How long to wait before executing the task (default 60s).
      */
-    static async createTranscriptionCheckTask(connectionId: string, operationName: string, delaySeconds: number = 60) {
+    static async createTranscriptionCheckTask(connectionId: string, operationName: string, delaySeconds: number = 60, outputUri?: string) {
         const project = process.env.GCLOUD_PROJECT || getApp().options.projectId;
         const location = process.env.FUNCTION_REGION || "us-central1"; // Default to us-central1
         const queue = "default"; // Use the default queue
@@ -22,7 +22,8 @@ export class CloudTasksService {
 
         const payload = {
             connectionId,
-            operationName
+            operationName,
+            outputUri
         };
 
         const task = {

@@ -43,7 +43,7 @@ export class TwilioService {
      * Trigger a transcription for a given Recording SID using Twilio Intelligence.
      * Note: This uses the /v2/Transcripts endpoint (Conversational Intelligence).
      */
-    static async createTranscription(recordingSid: string, callbackUrl: string, roomSid?: string): Promise<string> {
+    static async createTranscription(recordingSid: string, callbackUrl: string, roomSid?: string): Promise<string | any> {
         const client = getClient();
 
         try {
@@ -130,9 +130,9 @@ export class TwilioService {
                             console.log(`[TwilioService] Uploaded to GCS: ${gsUri}`);
                             console.log(`[TwilioService] Starting Google Cloud Video Intelligence Job...`);
 
-                            const operationName = await GoogleVideoService.transcribeVideo(gsUri);
+                            const { operationName, outputUri } = await GoogleVideoService.transcribeVideo(gsUri);
                             console.log(`[TwilioService] Started Google Video Job: ${operationName}`);
-                            return operationName;
+                            return { operationName, outputUri };
                         }
 
                     } else if (recordingSid.startsWith('RT') && roomSid) {

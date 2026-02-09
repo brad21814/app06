@@ -106,4 +106,39 @@ export class CloudStorageService {
             });
         });
     }
+
+    static async downloadJson(gcsUri: string): Promise<any> {
+        // gcsUri is gs://bucket/path
+        const match = gcsUri.match(/^gs:\/\/([^\/]+)\/(.+)$/);
+        if (!match) {
+            throw new Error(`Invalid GCS URI: ${gcsUri}`);
+        }
+        const bucketName = match[1];
+        const filePath = match[2];
+
+        // Re-init storage (duplicate logic for now to keep it static/contained)
+        // Ideally we refactor the client init, but for minimal changes:
+        const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        let credentials;
+        if (credentialsPath && fs.existsSync(credentialsPath)) {
+            try {
+                credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf-8'));
+            } catch (error) {
+                console.error('[CloudStorageService] Failed to parse credentials file:', error);
+            }
+        }
+
+        const storage = new Storage({
+            apiEndpoint: 'https://storage.googleapis.com',
+            projectId: process.env.GCLOUD_PROJECT || 'komandra-app06',
+            credentials: credentials
+        });
+
+        console.log(`[CloudStorageService] Downloading JSON from ${gcsUri}`);
+        const bucket = storage.bucket(bucketName);
+        const file = bucket.file(filePath);
+
+        const [content] = await file.download();
+        return JSON.parse(content.toString('utf-8'));
+    }
 }

@@ -66,21 +66,32 @@ export const twilioWebhook = onRequest(async (req, res) => {
                 try {
                     const { TwilioService } = require('./services/twilio');
                     // Treat CompositionSid as the RecordingSid/SourceSid
-                    const transcriptSid = await TwilioService.createTranscription(compositionSid, callbackUrl, roomSid);
+                    const result = await TwilioService.createTranscription(compositionSid, callbackUrl, roomSid);
+
+                    let transcriptSid = '';
+                    let outputUri = '';
+
+                    if (typeof result === 'object') {
+                        transcriptSid = result.operationName;
+                        outputUri = result.outputUri;
+                    } else {
+                        transcriptSid = result as string;
+                    }
 
                     console.log(`[TwilioWebhook] Triggered Transcription for Composition: ${transcriptSid}`);
 
                     await connectionDoc.ref.update({
                         transcriptSid: transcriptSid,
                         transcriptStatus: 'processing',
-                        compositionSid: compositionSid // Track composition too
+                        compositionSid: compositionSid, // Track composition too
+                        transcriptOutputUri: outputUri || null
                     });
 
                     // If this is a Google Operation, start the polling task
                     if (transcriptSid.startsWith('projects/')) {
                         console.log(`[TwilioWebhook] Enqueuing Cloud Task for Google Operation: ${transcriptSid}`);
                         const { CloudTasksService } = require('./services/cloudTasks');
-                        await CloudTasksService.createTranscriptionCheckTask(connectionId, transcriptSid, 60);
+                        await CloudTasksService.createTranscriptionCheckTask(connectionId, transcriptSid, 60, outputUri);
                     }
 
                 } catch (err: any) {
