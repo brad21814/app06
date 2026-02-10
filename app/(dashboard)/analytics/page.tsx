@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
-import { getAnalyticsCollection, getUserDoc } from '@/lib/firestore/admin/collections';
+import { getAnalyticsCollection, getUserDoc, getTeamMembersCollection } from '@/lib/firestore/admin/collections';
+import { adminDb } from '@/lib/firebase/server';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 
@@ -30,7 +31,7 @@ async function AnalyticsData() {
         );
     }
 
-    // Fetch Analytics for this Account
+    // 1. Fetch Account-level Analytics (for the charts)
     const analyticsSnap = await getAnalyticsCollection()
         .where('entityId', '==', accountId)
         .where('entityType', '==', 'account')
@@ -38,28 +39,45 @@ async function AnalyticsData() {
 
     const analyticsData = analyticsSnap.docs.map(doc => doc.data());
 
-    if (analyticsData.length === 0) {
-        // Fallback for demo if no data exists yet
-        const MOCK_DATA = [
-            {
-                id: 'mock_1',
-                entityType: 'account',
-                entityId: accountId, // Match user's account
-                period: '2025-01',
-                totalConnections: 12,
-                completedConnections: 10,
-                avgSentiment: 78,
-                participationRate: 0.83,
-                relationshipDensity: 0.35,
-                topTopics: [{ topic: 'Launch', count: 5 }],
-                updatedAt: null as any
-            }
-        ] as any[];
+    // 2. Fetch User's Team (for granular view - MVP limitation: showing user's team only)
+    // We need to find which team the user is in.
+    const memberSnap = await getTeamMembersCollection()
+        .where('userId', '==', session.user.id)
+        .limit(1)
+        .get();
 
-        return <AnalyticsDashboard analyticsData={MOCK_DATA} />;
+    let teamMembers: any[] = [];
+    let relationships: any[] = [];
+
+    if (!memberSnap.empty) {
+        const teamId = memberSnap.docs[0].data().teamId;
+
+        // Fetch all members of this team to show Participation Stats
+        const teamMembersSnap = await getTeamMembersCollection()
+            .where('teamId', '==', teamId)
+            .get();
+
+        teamMembers = teamMembersSnap.docs.map(doc => doc.data());
+
+        // Fetch Relationships for this team
+        const relSnap = await adminDb.collection('relationships')
+            .where('teamId', '==', teamId)
+            .limit(20) // Limit for performance
+            .get();
+
+        relationships = relSnap.docs.map(doc => doc.data());
     }
 
-    return <AnalyticsDashboard analyticsData={analyticsData} />;
+    // Fetch Relationships (We need to import adminDb)
+    // We'll require a dynamic import or checking if we can import adminDb directly in page.tsx
+    // It's a server component, so yes.
+
+    // HOWEVER, we don't have a helper for relationships yet.
+    // Let's skip fetching relationships for this exact tool call and do it in next one 
+    // or just assume we can't display them yet until we add the helper?
+    // actually I can just add the helper code right here if imports allow.
+
+    return <AnalyticsDashboard analyticsData={analyticsData} teamMembers={teamMembers} relationships={relationships} />;
 }
 
 

@@ -127,6 +127,7 @@ Defines Critical workflows within the web application
    - Each question has a **Max Time** countdown (e.g., 3 mins).
    - Participants must discuss for at least **Min Time** before the "Next" button becomes active.
    - When time expires, the system prompts to move to the next topic.
+   - **Timestamps:** The system logs the timestamp when each question is presented (`questionEvents`) to align with the transcript later.
 3. When the session is finished the transcript is stored  
 4. An LLM processes the transcript and measures overall sentiment and stores this for later analysis  
 5. The connect results are recorded /connects/{connect\_id}
@@ -208,7 +209,22 @@ Stores data about a single connect session.
 | status | Status of the connect | "completed" |
 | durationSeconds | Duration in seconds | 900 |
 | endedAt | Timestamp when call ended | 2025-01-01T12:15:00Z |
-| analysis | Object containing AI analysis | `{ sentimentScore: 85, topics: [...] }` |
+| analysis | Object containing AI analysis | `{ ... }` **(Admin Only)** |
+| questionEvents | Log of question timestamps | `[{ question: "...", askedAt: "..." }]` |
+
+## /relationships/{relationship_id}
+
+Tracks the evolving connection strength between two users.
+ID Format: `min(uid1, uid2)_max(uid1, uid2)`
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| id | Composite User IDs | "uidA_uidB" |
+| users | Array of User IDs | `["uidA", "uidB"]` |
+| strengthScore | 0-100 Connection Strength | 75 |
+| connectionCount | Number of sessions | 5 |
+| lastConnectedAt | Timestamp of last session | 2025-01-01T12:00:00Z |
+| tags | Shared topics/interests | `["hiking", "react"]` |
 
 ## /transcripts/{transcript_id}
 
@@ -348,7 +364,8 @@ ID Format: `{entityType}_{entityId}_{period}` (e.g., `team_123_2025-01`)
   - **Metrics:**
     - **Vibe Check:** Average Sentiment Score over time.
     - **Participation:** Completed vs Scheduled connections.
-    - **Network Density:** (Planned) Graph of unique connections within a team.
+    - **Participation:** Completed vs Scheduled connections.
+    - **Network Density:** (Planned) Graph of unique connections within a team. **Note:** Individual edges are hidden from managers to preserve privacy; only aggregate density scores are shown.
 
 # Feature Build Priority
 

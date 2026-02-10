@@ -40,6 +40,11 @@ export interface TeamMember {
     teamId: string;
     role: string;
     joinedAt: Timestamp;
+    stats?: {
+        totalConnections: number;
+        lastConnectedAt?: Timestamp | null;
+        averageSentiment?: number;
+    };
 }
 
 export interface ActivityLog {
@@ -112,6 +117,11 @@ export interface Theme {
     updatedAt: Timestamp;
 }
 
+export interface QuestionEvent {
+    question: string;
+    askedAt: Timestamp;
+}
+
 export interface Connection {
     id: string;
     scheduleId: string;
@@ -124,11 +134,16 @@ export interface Connection {
     connectRoomId?: string | null;
     connectRoomUrl?: string | null;
     transcriptId?: string | null;
+    transcriptSid?: string | null;
+    transcriptStatus?: 'queued' | 'processing' | 'composing' | 'completed' | 'failed' | null;
+    transcriptOutputUri?: string | null;
+    transcript?: any | null; // Legacy/Google Video Intelligence result object
     summary?: string | null;
     sentiment?: number | null;
     startedAt?: Timestamp | null;
     analysis?: ConnectionAnalysis | null;
     questions?: string[] | null; // Selected/Randomized questions for this session
+    questionEvents?: QuestionEvent[] | null; // Log of when questions were asked
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -146,6 +161,16 @@ export interface ConnectionAnalysis {
     topics: string[];
     keyTakeaways: string[];
     vibeScore: string; // "Thriving", "Neutral", "Concern"
+}
+
+export interface Relationship {
+    id: string; // composite key: "min(uid1, uid2)_max(uid1, uid2)"
+    teamId: string;
+    users: [string, string];
+    connectionCount: number;
+    lastConnectedAt: Timestamp;
+    strengthScore: number; // 0-100 based on sentiment/frequency
+    tags: string[]; // Shared topics
 }
 
 export interface AnalyticsSnapshot {

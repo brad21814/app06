@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock } from 'lucide-react';
 import VideoFromTwilio, { Room, LocalTrack, RemoteTrack, LocalAudioTrack, LocalVideoTrack, RemoteAudioTrack, RemoteVideoTrack } from 'twilio-video';
 import { getConnectionsCollection } from '@/lib/firestore/client/collections';
-import { updateDoc, doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { updateDoc, doc, onSnapshot, Timestamp, arrayUnion } from 'firebase/firestore';
+import { QuestionEvent } from '@/types/firestore';
 
 // Types
 interface Participant {
@@ -39,6 +40,7 @@ interface ConnectionData {
     theme?: Theme;
     timerSettings?: TimerSettings;
     startedAt?: any; // Timestamp
+    questionEvents?: QuestionEvent[];
 }
 
 export default function ConnectionPage() {
@@ -114,7 +116,11 @@ export default function ConnectionPage() {
         try {
             await updateDoc(doc(getConnectionsCollection(), connectionId), {
                 startedAt: Timestamp.now(),
-                status: 'in_progress'
+                status: 'in_progress',
+                questionEvents: arrayUnion({
+                    question: connection?.theme?.questions?.[0] || 'First Question',
+                    askedAt: Timestamp.now()
+                })
             });
         } catch (error) {
             console.error("Error starting session:", error);
@@ -313,11 +319,27 @@ export default function ConnectionPage() {
         return () => clearInterval(timer);
     }, [isClosing, connectionId, room, isSessionEnded]);
 
-    const nextQuestion = () => {
+    const nextQuestion = async () => {
         if (!canNext) return;
 
         if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
+
+            // Log the next question event
+            if (connectionId && questions[nextIndex]) {
+                try {
+                    await updateDoc(doc(getConnectionsCollection(), connectionId), {
+                        questionEvents: arrayUnion({
+                            question: questions[nextIndex],
+                            askedAt: Timestamp.now()
+                        })
+                    });
+                } catch (err) {
+                    console.error("Failed to log question event:", err);
+                }
+            }
+
         } else {
             // Last question manually finished
             setIsClosing(true);

@@ -197,6 +197,92 @@ export * from "./twilioWebhook";
 // Triggered specifically by Cloud Tasks
 import { CloudTasksService } from "./services/cloudTasks";
 
+// Import AI Analysis Service
+import { AiAnalysisService } from "./services/aiAnalysis";
+// We need to import Connection type to safely cast
+// Correct path is relative to src
+import { Connection } from "../../types/firestore";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+
+// Helper function to aggregate data
+import { aggregateConnectionData } from "./analytics";
+
+export const onConnectionUpdate = onDocumentUpdated("connections/{connectionId}", async (event) => {
+    const newData = event.data?.after.data() as Connection;
+    const oldData = event.data?.before.data() as Connection;
+    const connectionId = event.params.connectionId;
+
+    if (!newData) return;
+
+    // Check if transcript is ready and analysis is missing
+    // We check for 'transcriptStatus' change to 'completed' OR if we just have a transcript and no analysis
+    const transcriptJustCompleted = newData.transcriptStatus === 'completed' && oldData.transcriptStatus !== 'completed';
+    const transcriptExists = !!newData.transcript || !!newData.transcriptSid;
+    const analysisMissing = !newData.analysis;
+
+    if ((transcriptJustCompleted || (transcriptExists && analysisMissing)) && newData.status === 'completed') {
+        console.log(`[onConnectionUpdate] Transcript ready for ${connectionId}. Starting AI Analysis...`);
+        try {
+            await analyzeConnection(connectionId, newData);
+        } catch (error) {
+            console.error(`[onConnectionUpdate] AI Analysis failed for ${connectionId}:`, error);
+        }
+    }
+
+    // Existing aggregation logic...
+    // Only proceed if status changed to 'completed' OR analysis was just added
+    const isCompletedNow = newData.status === 'completed' && oldData.status !== 'completed';
+    const analysisAdded = !!newData.analysis && !oldData.analysis;
+
+    if (isCompletedNow || analysisAdded) {
+        try {
+            await aggregateConnectionData(newData);
+        } catch (err) {
+            console.error(`[onConnectionUpdate] Aggregation failed:`, err);
+        }
+    }
+});
+
+async function analyzeConnection(connectionId: string, connectionData: Connection) {
+    // 1. Get Transcript Text
+    let transcriptText = "";
+
+    // Case A: Google Video Intelligence (stored in 'transcript.text')
+    if (connectionData.transcript && (connectionData.transcript as any).text) {
+        transcriptText = (connectionData.transcript as any).text;
+    }
+    // Case B: Twilio/Deepgram (stored in separate doc or we fetch it)
+    // For MVP, let's assume if we have a transcript object it has the text.
+    else if (connectionData.transcriptSid) {
+        // Fetch from Transcripts collection if we stored it there
+        // This part depends on how 'twilioTranscriptionWebhook' stores data.
+        // Let's check 'transcripts/{transcriptSid}'
+        const transcriptDoc = await db.collection('transcripts').doc(connectionData.transcriptSid).get();
+        if (transcriptDoc.exists) {
+            transcriptText = transcriptDoc.data()?.text || "";
+        }
+    }
+
+    if (!transcriptText) {
+        console.log(`[analyzeConnection] No transcript text found for ${connectionId}. Aborting analysis.`);
+        return;
+    }
+
+    // 2. Perform Analysis
+    console.log(`[analyzeConnection] Analyzing text length: ${transcriptText.length}`);
+    const questionEvents = connectionData.questionEvents || [];
+
+    const analysisResult = await AiAnalysisService.analyzeConnection(transcriptText, questionEvents);
+
+    // 3. Save Analysis
+    await db.collection('connections').doc(connectionId).update({
+        analysis: analysisResult,
+        updatedAt: Timestamp.now()
+    });
+    console.log(`[analyzeConnection] Analysis saved for ${connectionId}`);
+}
+
+
 export const transcriptionTask = onRequest(async (req, res) => {
     // Basic verification: Check if it's a POST
     if (req.method !== 'POST') {

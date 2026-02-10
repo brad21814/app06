@@ -1,6 +1,6 @@
 - [x] TASK001: determine metrics we want to track.
 - [x] TASK002: Plan analytics feature (tracking, storage, display) @[context/features/analytics_dashboard.md]
-- [ ] TASK003: Record marker between transcription identifying the conversation for each question interval.
+- [x] TASK003: Record marker between transcription identifying the conversation for each question interval.
 - [ ] TASK004: Trigger ai post-processing of each question and the conversation to calculate relationship analytics.
 - [ ] TASK005: Allow adding teams and selecting teams when adding users.
 - [ ] TASK006: Add csv import with user name, email and team name.
