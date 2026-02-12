@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { getUser, getTeamForUser, getUserConnections, getTeamConnections, getAnalyticsData, getRelationships } from '@/lib/firestore/admin/queries';
+import { AnalyticsSnapshot, Relationship, TeamMember, Connection } from '@/types/firestore';
 import { ConnectionHistory } from '@/components/dashboard/connection-history';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
 import { OnboardingChecklist } from '@/components/dashboard/checklist';
@@ -12,16 +13,16 @@ async function DashboardContent() {
   const team = await getTeamForUser();
   const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
 
-  let connections: any[] = [];
+  let connections: Connection[] = [];
   if (isOwnerOrAdmin && team) {
     connections = await getTeamConnections(team.id);
   } else {
     connections = await getUserConnections(user.id);
   }
 
-  let analyticsData = [];
-  let relationships = [];
-  let teamMembers = [];
+  let analyticsData: AnalyticsSnapshot[] = [];
+  let relationships: Relationship[] = [];
+  let teamMembers: TeamMember[] = [];
 
   if (isOwnerOrAdmin && team) {
     analyticsData = await getAnalyticsData(team.id);
