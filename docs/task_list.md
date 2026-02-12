@@ -3,9 +3,9 @@
 - [x] TASK001: determine metrics we want to track.
 - [x] TASK002: Plan analytics feature (tracking, storage, display) @[context/features/analytics_dashboard.md]
 - [x] TASK003: Record marker between transcription identifying the conversation for each question interval.
-- [ ] TASK004: Create component to list a users past connections. Place this on the dashboard page only for 'member' and 'admin' user types.
-- [ ] TASK005: Update dashboard page to be specific for the individual user types. e.g. 'admin', 'owner', 'member'.  If you have to just add plaeholder components for what each user could be presented.
-- [ ] TASK006: Update dashboard to show analytics for 'admin' users.
+- [x] TASK004: Create component to list a users past connections. Place this on the dashboard page only for 'member' and 'admin' user types.
+- [x] TASK005: Update dashboard page to be specific for the individual user types. e.g. 'admin', 'owner', 'member'.  If you have to just add plaeholder components for what each user could be presented.
+- [x] TASK006: Update dashboard to show analytics for 'admin' users.
 - [ ] TASK007: Trigger ai post-processing of each question and the conversation to calculate relationship analytics.
 - [ ] TASK008: Allow adding teams and selecting teams when adding users.
 - [ ] TASK009: Add csv import with user name, email and team name.
@@ -20,9 +20,9 @@
 ## Bugs
 
 - [x] BUG001: fix profile saving issue
-- [ ] BUG002: fix general member users should not have acces to /teams
-- [ ] BUG003: fix general member users should not have acces to /analytics
-- [ ] BUG004: fix general member users should not have acces to /schedules
+- [x] BUG002: fix general member users should not have acces to /teams
+- [x] BUG003: fix general member users should not have acces to /analytics
+- [x] BUG004: fix general member users should not have acces to /schedules
 
 
 
