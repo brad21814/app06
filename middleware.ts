@@ -47,6 +47,20 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // RBAC: valid roles are 'owner' and 'member'
+  // 'member' cannot access /teams, /analytics, /schedules
+  if (payload.user.role === 'member') {
+    if (
+      pathname.startsWith('/teams') ||
+      pathname.startsWith('/analytics') ||
+      pathname.startsWith('/schedules')
+    ) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/forbidden';
+      return NextResponse.rewrite(url);
+    }
+  }
+
   return NextResponse.next();
 }
 

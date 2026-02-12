@@ -9,7 +9,10 @@ const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 
 type SessionData = {
-  user: { id: string };
+  user: {
+    id: string;
+    role: string;
+  };
   expires: string;
 };
 
@@ -37,7 +40,10 @@ export async function getSession() {
 export async function setSession(user: User) {
   const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const session: SessionData = {
-    user: { id: user.id },
+    user: {
+      id: user.id,
+      role: user.role,
+    },
     expires: expiresInOneDay.toISOString(),
   };
   const encryptedSession = await signToken(session);
