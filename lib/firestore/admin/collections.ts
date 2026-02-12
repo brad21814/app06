@@ -7,7 +7,9 @@ import {
     activityLogConverter,
     invitationConverter,
     passwordResetTokenConverter,
-    analyticsConverter
+    analyticsConverter,
+    connectionConverter,
+    relationshipConverter
 } from './converters';
 import {
     User,
@@ -16,7 +18,9 @@ import {
     ActivityLog,
     Invitation,
     PasswordResetToken,
-    AnalyticsSnapshot
+    AnalyticsSnapshot,
+    Connection,
+    Relationship
 } from '@/types/firestore';
 
 export const getUsersCollection = (): CollectionReference<User> =>
@@ -45,3 +49,9 @@ export const getPasswordResetTokensCollection = (): CollectionReference<Password
 
 export const getAnalyticsCollection = (): CollectionReference<AnalyticsSnapshot> =>
     adminDb.collection('analytics').withConverter(analyticsConverter);
+
+export const getConnectionsCollection = (): CollectionReference<Connection> =>
+    adminDb.collection('connections').withConverter(connectionConverter);
+
+export const getRelationshipsCollection = (): CollectionReference<Relationship> =>
+    adminDb.collection('relationships').withConverter(relationshipConverter);

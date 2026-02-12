@@ -7,9 +7,12 @@ import {
     getTeamMembersCollection,
     getActivityLogsCollection,
     getUserDoc,
-    getTeamDoc
+    getTeamDoc,
+    getConnectionsCollection,
+    getAnalyticsCollection,
+    getRelationshipsCollection
 } from './collections';
-import { User, Team, ActivityLog } from '@/types/firestore';
+import { User, Team, ActivityLog, Connection, AnalyticsSnapshot, Relationship } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
     const sessionCookie = (await cookies()).get('session');
@@ -148,4 +151,48 @@ export async function getTeamForUser() {
         ...team,
         teamMembers: teamMembersWithUsers
     };
+}
+
+export async function getUserConnections(userId: string): Promise<Connection[]> {
+    const snapshot = await getConnectionsCollection()
+        .where('proposerId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+    const snapshot2 = await getConnectionsCollection()
+        .where('confirmerId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+    // Merge and sort
+    const connections = [...snapshot.docs.map(d => d.data()), ...snapshot2.docs.map(d => d.data())];
+    connections.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+
+    return connections;
+}
+
+export async function getTeamConnections(teamId: string): Promise<Connection[]> {
+    const snapshot = await getConnectionsCollection()
+        .where('teamId', '==', teamId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+    return snapshot.docs.map(d => d.data());
+}
+
+export async function getAnalyticsData(teamId: string): Promise<AnalyticsSnapshot[]> {
+    const snapshot = await getAnalyticsCollection()
+        .where('entityId', '==', teamId)
+        .orderBy('period', 'asc')
+        .get();
+
+    return snapshot.docs.map(d => d.data());
+}
+
+export async function getRelationships(teamId: string): Promise<Relationship[]> {
+    const snapshot = await getRelationshipsCollection()
+        .where('teamId', '==', teamId)
+        .get();
+
+    return snapshot.docs.map(d => d.data());
 }

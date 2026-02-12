@@ -10,7 +10,9 @@ import {
     ActivityLog,
     Invitation,
     PasswordResetToken,
-    AnalyticsSnapshot
+    AnalyticsSnapshot,
+    Connection,
+    Relationship
 } from '@/types/firestore';
 
 const createConverter = <T>(): FirestoreDataConverter<T> => ({
@@ -36,3 +38,5 @@ export const activityLogConverter = createConverter<ActivityLog>();
 export const invitationConverter = createConverter<Invitation>();
 export const passwordResetTokenConverter = createConverter<PasswordResetToken>();
 export const analyticsConverter = createConverter<AnalyticsSnapshot>();
+export const connectionConverter = createConverter<Connection>();
+export const relationshipConverter = createConverter<Relationship>();
