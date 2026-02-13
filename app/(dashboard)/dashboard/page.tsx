@@ -4,6 +4,7 @@ import { AnalyticsSnapshot, Relationship, TeamMember, Connection } from '@/types
 import { ConnectionHistory } from '@/components/dashboard/connection-history';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
 import { OnboardingChecklist } from '@/components/dashboard/checklist';
+import { serializeFirestoreData } from '@/lib/utils';
 
 // Separate component for async data fetching to keep page clean
 async function DashboardContent() {
@@ -38,16 +39,16 @@ async function DashboardContent() {
         <section>
           <h2 className="text-2xl font-bold tracking-tight mb-4">Team Analytics</h2>
           <AnalyticsDashboard
-            analyticsData={analyticsData}
-            relationships={relationships}
-            teamMembers={teamMembers}
+            analyticsData={serializeFirestoreData(analyticsData)}
+            relationships={serializeFirestoreData(relationships)}
+            teamMembers={serializeFirestoreData(teamMembers)}
           />
         </section>
       )}
 
       <section>
         <h2 className="text-2xl font-bold tracking-tight mb-4">Your Connections</h2>
-        <ConnectionHistory connections={connections} currentUserId={user.id} />
+        <ConnectionHistory connections={serializeFirestoreData(connections)} currentUserId={user.id} />
       </section>
     </div>
   );

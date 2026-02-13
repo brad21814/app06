@@ -34,6 +34,13 @@ export function ConnectionHistory({ connections, currentUserId }: ConnectionHist
         );
     }
 
+    const getDate = (val: any) => {
+        if (!val) return new Date();
+        if (typeof val === 'number') return new Date(val);
+        if (typeof val.toDate === 'function') return val.toDate();
+        return new Date(val);
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -51,10 +58,10 @@ export function ConnectionHistory({ connections, currentUserId }: ConnectionHist
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {connections.map((connection) => (
+                        {connections.map((connection: any) => (
                             <TableRow key={connection.id}>
                                 <TableCell className="font-medium">
-                                    {format(connection.createdAt.toDate(), "MMM d, yyyy h:mm a")}
+                                    {format(getDate(connection.createdAt), "MMM d, yyyy h:mm a")}
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={connection.status === 'completed' ? 'default' : 'secondary'}>

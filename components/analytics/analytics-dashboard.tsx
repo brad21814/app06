@@ -38,10 +38,17 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
         relationshipDensity: 0
     };
 
+    const getDate = (val: any) => {
+        if (!val) return null;
+        if (typeof val === 'number') return new Date(val);
+        if (typeof val.toDate === 'function') return val.toDate();
+        return new Date(val);
+    };
+
     // Sort Members by Last Connected (Ascending - show inactive first)
     const sortedMembers = [...teamMembers].sort((a, b) => {
-        const dateA = a.stats?.lastConnectedAt?.toMillis() || 0;
-        const dateB = b.stats?.lastConnectedAt?.toMillis() || 0;
+        const dateA = getDate(a.stats?.lastConnectedAt)?.getTime() || 0;
+        const dateB = getDate(b.stats?.lastConnectedAt)?.getTime() || 0;
         return dateA - dateB;
     });
 
@@ -143,13 +150,13 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {sortedMembers.slice(0, 10).map((member) => (
+                                {sortedMembers.slice(0, 10).map((member: any) => (
                                     <TableRow key={member.userId}>
                                         <TableCell className="font-medium">{member.role || 'Member'}</TableCell>
                                         <TableCell>{member.stats?.totalConnections || 0}</TableCell>
                                         <TableCell>
                                             {member.stats?.lastConnectedAt
-                                                ? format(member.stats.lastConnectedAt.toDate(), 'MMM d, yyyy')
+                                                ? format(getDate(member.stats.lastConnectedAt)!, 'MMM d, yyyy')
                                                 : 'Never'}
                                         </TableCell>
                                         <TableCell>
