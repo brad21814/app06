@@ -12,7 +12,7 @@ import {
     getAnalyticsCollection,
     getRelationshipsCollection
 } from './collections';
-import { User, Team, ActivityLog, Connection, AnalyticsSnapshot, Relationship } from '@/types/firestore';
+import { User, Team, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
     const sessionCookie = (await cookies()).get('session');
@@ -153,7 +153,35 @@ export async function getTeamForUser() {
     };
 }
 
-export async function getUserConnections(userId: string): Promise<Connection[]> {
+
+async function enrichConnectionsWithParticipants(connections: Connection[]): Promise<ConnectionWithParticipants[]> {
+    if (connections.length === 0) return [];
+
+    const userIds = new Set<string>();
+    connections.forEach(c => {
+        if (c.proposerId) userIds.add(c.proposerId);
+        if (c.confirmerId) userIds.add(c.confirmerId);
+    });
+
+    const userMap = new Map<string, Pick<User, 'id' | 'name' | 'email'>>();
+    await Promise.all(Array.from(userIds).map(async (uid) => {
+        const uDoc = await getUserDoc(uid).get();
+        if (uDoc.exists) {
+            const u = uDoc.data();
+            if (u) {
+                userMap.set(uid, { id: u.id, name: u.name, email: u.email });
+            }
+        }
+    }));
+
+    return connections.map(c => ({
+        ...c,
+        proposer: c.proposerId ? userMap.get(c.proposerId) || null : null,
+        confirmer: c.confirmerId ? userMap.get(c.confirmerId) || null : null,
+    }));
+}
+
+export async function getUserConnections(userId: string): Promise<ConnectionWithParticipants[]> {
     const snapshot = await getConnectionsCollection()
         .where('proposerId', '==', userId)
         .orderBy('createdAt', 'desc')
@@ -166,18 +194,23 @@ export async function getUserConnections(userId: string): Promise<Connection[]> 
 
     // Merge and sort
     const connections = [...snapshot.docs.map(d => d.data()), ...snapshot2.docs.map(d => d.data())];
-    connections.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
 
-    return connections;
+    // Deduplicate based on ID (though unlikely to overlap given the queries unless user proposes to themselves?)
+    const uniqueConnections = Array.from(new Map(connections.map(item => [item.id, item])).values());
+
+    uniqueConnections.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+
+    return enrichConnectionsWithParticipants(uniqueConnections);
 }
 
-export async function getTeamConnections(teamId: string): Promise<Connection[]> {
+export async function getTeamConnections(teamId: string): Promise<ConnectionWithParticipants[]> {
     const snapshot = await getConnectionsCollection()
         .where('teamId', '==', teamId)
         .orderBy('createdAt', 'desc')
         .get();
 
-    return snapshot.docs.map(d => d.data());
+    const connections = snapshot.docs.map(d => d.data());
+    return enrichConnectionsWithParticipants(connections);
 }
 
 export async function getAnalyticsData(teamId: string): Promise<AnalyticsSnapshot[]> {

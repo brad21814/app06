@@ -154,6 +154,11 @@ export type TeamDataWithMembers = Team & {
     })[];
 };
 
+export type ConnectionWithParticipants = Connection & {
+    proposer: Pick<User, 'id' | 'name' | 'email'> | null;
+    confirmer: Pick<User, 'id' | 'name' | 'email'> | null;
+};
+
 export interface ConnectionAnalysis {
     summary: string;
     sentimentScore: number;

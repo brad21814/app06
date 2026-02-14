@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { getUser, getTeamForUser, getUserConnections, getTeamConnections, getAnalyticsData, getRelationships } from '@/lib/firestore/admin/queries';
-import { AnalyticsSnapshot, Relationship, TeamMember, Connection } from '@/types/firestore';
-import { ConnectionHistory } from '@/components/dashboard/connection-history';
+import { AnalyticsSnapshot, Relationship, TeamMember, ConnectionWithParticipants } from '@/types/firestore';
+import { Connections } from '@/components/dashboard/connections';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
 import { OnboardingChecklist } from '@/components/dashboard/checklist';
 import { serializeFirestoreData } from '@/lib/utils';
@@ -14,7 +14,7 @@ async function DashboardContent() {
   const team = await getTeamForUser();
   const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
 
-  let connections: Connection[] = [];
+  let connections: ConnectionWithParticipants[] = [];
   if (isOwnerOrAdmin && team) {
     connections = await getTeamConnections(team.id);
   } else {
@@ -47,8 +47,7 @@ async function DashboardContent() {
       )}
 
       <section>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">Your Connections</h2>
-        <ConnectionHistory connections={serializeFirestoreData(connections)} currentUserId={user.id} />
+        <Connections connections={serializeFirestoreData(connections)} currentUserId={user.id} />
       </section>
     </div>
   );
