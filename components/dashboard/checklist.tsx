@@ -31,13 +31,12 @@ export function OnboardingChecklist() {
                 }
 
                 let items = [
-                    { id: 'profile', label: 'Complete Profile', completed: !!userData.name && !!userData.timezone, action: '/profile' },
                     { id: 'invite', label: 'Invite Members', completed: hasInvitations, action: '/teams', role: 'admin,owner' },
                 ];
 
                 // Hide team/invite tasks for regular members
                 if (userData.role === 'member') {
-                    items = items.filter(item => item.id === 'profile' || item.role?.includes(userData.role));
+                    items = items.filter(item => item.role?.includes(userData.role));
                 }
 
                 setChecklist(items);
