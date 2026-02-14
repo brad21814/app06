@@ -72,15 +72,16 @@ function UserMenu() {
                         <span>Dashboard</span>
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" asChild>
-                    <Link href="/teams" className="flex w-full items-center">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Team</span>
-                    </Link>
-                </DropdownMenuItem>
 
                 {(userData?.role === 'owner' || userData?.role === 'admin') && (
                     <>
+                        <DropdownMenuItem className="cursor-pointer" asChild>
+                            <Link href="/teams" className="flex w-full items-center">
+                                <Users className="mr-2 h-4 w-4" />
+                                <span>Team</span>
+                            </Link>
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem className="cursor-pointer" asChild>
                             <Link href="/schedules" className="flex w-full items-center">
                                 <Activity className="mr-2 h-4 w-4" />
