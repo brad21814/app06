@@ -68,7 +68,7 @@ export async function getConnectionGraphData(): Promise<GraphData> {
     proposerSnaps.forEach(addDoc);
     confirmerSnaps.forEach(addDoc);
 
-    const partnerStats = new Map<string, { count: number; name: string }>();
+    const partnerStats = new Map<string, { count: number; name: string; image?: string }>();
 
     // We need to fetch user names if not in connection doc.
     // The `Connection` type in `types/firestore` has `participants` FIELD absent.
@@ -79,28 +79,46 @@ export async function getConnectionGraphData(): Promise<GraphData> {
     // Actually, `types/firestore.ts` doesn't have it, so TS will complain if I cast to `Connection`.
     // I will cast to `any` for the data to check for `participants`.
 
+    const partnerIds = new Set<string>();
     for (const conn of relevantConnections) {
-        const data = conn as any;
+        const isProposer = conn.proposerId === userId;
+        const partnerId = isProposer ? conn.confirmerId : conn.proposerId;
+        if (partnerId && partnerId !== userId) {
+            partnerIds.add(partnerId);
+        }
+    }
+
+    const partnerDetails = new Map<string, { name: string; image?: string }>();
+
+    // Fetch user details for all partners
+    await Promise.all(Array.from(partnerIds).map(async (pid) => {
+        try {
+            const userDoc = await adminDb.collection('users').doc(pid).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                partnerDetails.set(pid, {
+                    name: userData?.name || 'Unknown',
+                    image: userData?.photoURL
+                });
+            }
+        } catch (e) {
+            console.error(`Failed to fetch user ${pid}`, e);
+        }
+    }));
+
+    for (const conn of relevantConnections) {
         const isProposer = conn.proposerId === userId;
         const partnerId = isProposer ? conn.confirmerId : conn.proposerId;
 
         if (partnerId === userId) continue;
 
-        let partnerName = 'Unknown';
-        if (data.participants && Array.isArray(data.participants)) {
-            const p = data.participants.find((p: any) => p.id === partnerId);
-            if (p) partnerName = p.name;
-        }
-
         if (!partnerStats.has(partnerId)) {
-            partnerStats.set(partnerId, { count: 0, name: partnerName });
+            const details = partnerDetails.get(partnerId) || { name: 'Unknown' };
+            partnerStats.set(partnerId, { count: 0, name: details.name, image: details.image });
         }
 
         const stats = partnerStats.get(partnerId)!;
         stats.count++;
-        if (partnerName !== 'Unknown' && stats.name === 'Unknown') {
-            stats.name = partnerName;
-        }
     }
 
     // Now build graph
@@ -128,7 +146,7 @@ export async function getConnectionGraphData(): Promise<GraphData> {
         nodes.push({
             id: partnerId,
             type: 'partner',
-            data: { label: stats.name },
+            data: { label: stats.name, image: stats.image },
             position: { x, y }
         });
 

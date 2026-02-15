@@ -10,6 +10,8 @@ import {
     Node,
     Edge,
     MarkerType,
+    Handle,
+    Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { getConnectionGraphData, GraphData } from '@/lib/actions/connections';
@@ -27,6 +29,7 @@ const CustomNode = ({ data, type }: any) => {
             `}
             style={{ width: size, height: size }}
         >
+            <Handle type="target" position={Position.Top} className="opacity-0" />
             <Avatar className="w-full h-full">
                 <AvatarImage src={data.image} alt={data.label} />
                 <AvatarFallback className={isSelf ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'}>
@@ -36,6 +39,7 @@ const CustomNode = ({ data, type }: any) => {
             <div className="absolute -bottom-6 whitespace-nowrap text-xs font-medium bg-white/80 px-2 py-0.5 rounded-full border border-gray-100">
                 {data.label}
             </div>
+            <Handle type="source" position={Position.Bottom} className="opacity-0" />
         </div>
     );
 };
