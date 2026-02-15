@@ -130,9 +130,31 @@ While this template is intentionally minimal and to be used as a learning resour
 - https://turbostarter.dev
 
 
-to create tests
+## Testing
 
-npx playwright codegen http://localhost:3000/sign-up
+We use [Playwright](https://playwright.dev/) for End-to-End (E2E) testing. The existing tests are located in the `tests/` directory (e.g., `tests/sign-up-test.spec.ts`).
+
+### Creating Tests
+
+Use the codegen tool to record interactions and generate test code automatically:
+
+```bash
+npx playwright codegen http://localhost:3000
+```
+
+### Running Tests
+
+**Headless (Default)**
+Runs in the background. Best for CI or quick checks.
+```bash
+npx playwright test
+```
+
+**Interactive (UI Mode)**
+Opens the Playwright UI to explore, run, and debug tests visually.
+```bash
+npx playwright test --ui
+```
 
 
 
