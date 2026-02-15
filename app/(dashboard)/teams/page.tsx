@@ -95,8 +95,8 @@ function TeamMembers() {
                                     </p>
                                 </div>
                             </div>
-                            {/* Only allow removing members after the first one (owner/self) */}
-                            {index > 0 ? (
+                            {/* Only allow removing members that are not owners */}
+                            {member.role !== 'owner' ? (
                                 <form action={removeAction}>
                                     <input type="hidden" name="memberId" value={member.id} />
                                     <Button
