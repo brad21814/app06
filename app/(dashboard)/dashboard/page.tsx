@@ -4,6 +4,7 @@ import { AnalyticsSnapshot, Relationship, TeamMember, ConnectionWithParticipants
 import { Connections } from '@/components/dashboard/connections';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
 import { OnboardingChecklist } from '@/components/dashboard/checklist';
+import { ConnectionsGraph } from '@/components/dashboard/connections-graph';
 import { serializeFirestoreData } from '@/lib/utils';
 
 // Separate component for async data fetching to keep page clean
@@ -45,6 +46,11 @@ async function DashboardContent() {
           />
         </section>
       )}
+
+      <section>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Connection Network</h2>
+        <ConnectionsGraph />
+      </section>
 
       <section>
         <Connections connections={serializeFirestoreData(connections)} currentUserId={user.id} />
