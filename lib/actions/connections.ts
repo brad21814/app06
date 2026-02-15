@@ -53,7 +53,7 @@ export async function getConnectionGraphData(): Promise<GraphData> {
 
     const addDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
         if (!seenIds.has(doc.id)) {
-            const data = doc.data() as Connection;
+            const data = doc.data() as Omit<Connection, 'id'>;
             // Only include completed or scheduled connections? 
             // "historical connections" implies past. 
             // user request: "historical connections". 
