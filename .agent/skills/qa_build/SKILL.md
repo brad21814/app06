@@ -5,7 +5,7 @@ description: Runs the project build process and iteratively fixes any errors tha
 
 # QA Build and Fix Skill
 
-This skill guides you through the process of building the application and resolving any build errors. It is designed to be an iterative process: running the build, analyzing failures, fixing the underlying code issues, and repeating until success.
+This skill guides you through the process of building the application and resolving any build errors. It is designed to be an iterative process: running the build, analyzing failures, fixing the underlying code issues, and repeating until success. Important do not use playwright for testing, Just run the build.
 
 ## Instructions
 

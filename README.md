@@ -134,6 +134,14 @@ While this template is intentionally minimal and to be used as a learning resour
 
 We use [Playwright](https://playwright.dev/) for End-to-End (E2E) testing. The existing tests are located in the `tests/` directory (e.g., `tests/sign-up-test.spec.ts`).
 
+### Installation
+
+If running for the first time, install the Playwright browsers:
+
+```bash
+npx playwright install
+```
+
 ### Creating Tests
 
 Use the codegen tool to record interactions and generate test code automatically:

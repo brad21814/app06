@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense, useActionState } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { subscribeToTeamInvitations, revokeInvitation, Invitation } from '@/lib/firebase/firestore';
-import { Loader2, Mail, CheckCircle, Clock, Trash2 } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -153,6 +154,24 @@ export default function TeamPage() {
         }
     };
 
+    const handleResend = async (inviteId: string) => {
+        try {
+            const res = await fetch(`/api/invite/${inviteId}/resend`, {
+                method: 'POST',
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                toast.success('Invitation resent successfully');
+            } else {
+                toast.error(data.message || 'Failed to resend invitation');
+            }
+        } catch (error) {
+            console.error('Error resending invitation:', error);
+            toast.error('An unexpected error occurred');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
@@ -244,15 +263,28 @@ export default function TeamPage() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {invite.status === 'pending' && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                        onClick={() => handleRevoke(invite.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        <span className="sr-only">Revoke</span>
-                                                    </Button>
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                                            onClick={() => handleResend(invite.id)}
+                                                            title="Resend Invite"
+                                                        >
+                                                            <RefreshCw className="h-4 w-4" />
+                                                            <span className="sr-only">Resend Invite</span>
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={() => handleRevoke(invite.id)}
+                                                            title="Revoke Invite"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">Revoke</span>
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </TableCell>
                                         </TableRow>
