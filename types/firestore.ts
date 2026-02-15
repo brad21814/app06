@@ -11,6 +11,7 @@ export interface User {
 
     accountId?: string | null;
     hasDismissedGettingStarted?: boolean;
+    photoURL?: string | null;
 }
 
 export interface Account {
