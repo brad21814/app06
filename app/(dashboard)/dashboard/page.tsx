@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { getUser, getTeamForUser, getUserConnections, getTeamConnections, getAnalyticsData, getRelationships } from '@/lib/firestore/admin/queries';
 import { AnalyticsSnapshot, Relationship, TeamMember, ConnectionWithParticipants } from '@/types/firestore';
 import { Connections } from '@/components/dashboard/connections';
-import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
+import { AnalyticsSummary } from '@/components/analytics/analytics-summary';
 import { OnboardingChecklist } from '@/components/dashboard/checklist';
 import { ConnectionsGraph } from '@/components/dashboard/connections-graph';
 import { serializeFirestoreData } from '@/lib/utils';
@@ -39,10 +39,8 @@ async function DashboardContent() {
       {isOwnerOrAdmin && (
         <section>
           <h2 className="text-2xl font-bold tracking-tight mb-4">Team Analytics</h2>
-          <AnalyticsDashboard
+          <AnalyticsSummary
             analyticsData={serializeFirestoreData(analyticsData)}
-            relationships={serializeFirestoreData(relationships)}
-            teamMembers={serializeFirestoreData(teamMembers)}
           />
         </section>
       )}

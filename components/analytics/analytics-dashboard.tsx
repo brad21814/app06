@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AnalyticsSnapshot, TeamMember, Relationship } from "@/types/firestore";
+import { AnalyticsSummary } from "./analytics-summary";
 
 interface AnalyticsDashboardProps {
     analyticsData: AnalyticsSnapshot[];
@@ -29,14 +30,6 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
         participation: d.participationRate * 100, // Convert to %
         connections: d.completedConnections
     }));
-
-    // Calculate current/latest stats
-    const latest = sortedData[sortedData.length - 1] || {
-        avgSentiment: 0,
-        participationRate: 0,
-        completedConnections: 0,
-        relationshipDensity: 0
-    };
 
     const getDate = (val: any) => {
         if (!val) return null;
@@ -59,44 +52,7 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
 
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Avg Sentiment</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{latest.avgSentiment?.toFixed(1) || '0.0'}</div>
-                        <p className="text-xs text-muted-foreground">Based on last period</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Participation Rate</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{((latest.participationRate || 0) * 100).toFixed(0)}%</div>
-                        <p className="text-xs text-muted-foreground">Across all teams</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Connections</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{latest.completedConnections || 0}</div>
-                        <p className="text-xs text-muted-foreground">Total completed this period</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Density</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{((latest.relationshipDensity || 0) * 100).toFixed(0)}%</div>
-                        <p className="text-xs text-muted-foreground">Network interconnectedness</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <AnalyticsSummary analyticsData={analyticsData} />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="col-span-4">
