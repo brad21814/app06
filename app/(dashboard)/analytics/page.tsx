@@ -4,6 +4,7 @@ import { getAnalyticsCollection, getUserDoc, getTeamMembersCollection } from '@/
 import { adminDb } from '@/lib/firebase/server';
 import { getSession } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
+import { serializeFirestoreData } from '@/lib/utils';
 
 export const metadata = {
     title: 'Analytics | TeamPulp',
@@ -37,7 +38,7 @@ async function AnalyticsData() {
         .where('entityType', '==', 'account')
         .get();
 
-    const analyticsData = analyticsSnap.docs.map(doc => doc.data());
+    const analyticsData = analyticsSnap.docs.map(doc => serializeFirestoreData(doc.data()));
 
     // 2. Fetch User's Team (for granular view - MVP limitation: showing user's team only)
     // We need to find which team the user is in.
@@ -57,7 +58,7 @@ async function AnalyticsData() {
             .where('teamId', '==', teamId)
             .get();
 
-        teamMembers = teamMembersSnap.docs.map(doc => doc.data());
+        teamMembers = teamMembersSnap.docs.map(doc => serializeFirestoreData(doc.data()));
 
         // Fetch Relationships for this team
         const relSnap = await adminDb.collection('relationships')
@@ -65,7 +66,7 @@ async function AnalyticsData() {
             .limit(20) // Limit for performance
             .get();
 
-        relationships = relSnap.docs.map(doc => doc.data());
+        relationships = relSnap.docs.map(doc => serializeFirestoreData(doc.data()));
     }
 
     // Fetch Relationships (We need to import adminDb)
