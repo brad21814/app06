@@ -8,9 +8,9 @@ export async function POST(request: Request) {
     console.log('POST /api/invite');
     try {
         const body = await request.json();
-        const { email, role, teamId, accountId, invitedBy } = body;
+        const { email, role, teamIds, accountId, invitedBy } = body;
 
-        if (!email || !teamId || !accountId || !invitedBy) {
+        if (!email || !teamIds || !teamIds.length || !accountId || !invitedBy) {
             return NextResponse.json({ message: 'Missing required fields', success: false }, { status: 400 });
         }
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
         const newInvite: Omit<Invitation, 'id'> = {
             email,
-            teamId,
+            teamIds, // Updated to array
             accountId,
             role: role || 'member',
             invitedBy,

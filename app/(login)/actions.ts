@@ -227,7 +227,7 @@ export const inviteTeamMember = validatedActionWithUser(
     // Check for existing invitation
     const inviteSnap = await getInvitationsCollection()
       .where('email', '==', email)
-      .where('teamId', '==', userWithTeam.teamId)
+      .where('teamIds', 'array-contains', userWithTeam.teamId)
       .where('status', '==', 'pending')
       .limit(1)
       .get();
@@ -251,7 +251,7 @@ export const inviteTeamMember = validatedActionWithUser(
     const newInviteRef = getInvitationsCollection().doc();
     const newInvite: Invitation = {
       id: newInviteRef.id,
-      teamId: userWithTeam.teamId,
+      teamIds: [userWithTeam.teamId],
       accountId: teamData.accountId,
       email,
       role,

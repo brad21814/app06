@@ -45,7 +45,7 @@ export interface Team {
 export interface Invitation {
     id: string;
     email: string;
-    teamId: string;
+    teamIds: string[]; // Updated from teamId
     accountId: string;
     role: 'admin' | 'member';
     invitedBy: string;
@@ -117,17 +117,17 @@ export const getTeams = async (accountId: string) => {
 };
 
 // Invitation Operations
-export const inviteMember = async (email: string, teamId: string, accountId: string, role: 'admin' | 'member', invitedBy: string) => {
+export const inviteMember = async (email: string, teamIds: string[], accountId: string, role: 'admin' | 'member', invitedBy: string) => {
     const inviteRef = await addDoc(collection(db, 'invitations'), {
         email,
-        teamId,
+        teamIds,
         accountId,
         role,
         invitedBy,
         status: 'pending',
         createdAt: Timestamp.now(),
     });
-    return { id: inviteRef.id, email, teamId, accountId, role };
+    return { id: inviteRef.id, email, teamIds, accountId, role };
 };
 
 export const getInvitation = async (inviteId: string): Promise<Invitation | null> => {
@@ -149,7 +149,7 @@ export const acceptInvitation = async (inviteId: string, userId: string) => {
 export const getTeamInvitations = async (teamId: string) => {
     const q = query(
         collection(db, 'invitations'),
-        where('teamId', '==', teamId)
+        where('teamIds', 'array-contains', teamId)
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs
@@ -171,7 +171,7 @@ export const getAccountInvitations = async (accountId: string) => {
 export const subscribeToTeamInvitations = (teamId: string, callback: (invitations: Invitation[]) => void): Unsubscribe => {
     const q = query(
         collection(db, 'invitations'),
-        where('teamId', '==', teamId),
+        where('teamIds', 'array-contains', teamId),
         orderBy('createdAt', 'desc')
     );
 

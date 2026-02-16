@@ -59,7 +59,7 @@ export interface ActivityLog {
 
 export interface Invitation {
     id: string;
-    teamId: string;
+    teamIds: string[]; // Replaces teamId
     accountId: string;
     email: string;
     role: string;

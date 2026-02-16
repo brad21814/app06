@@ -1,0 +1,22 @@
+
+> emulator:start
+> npm run build --prefix functions && NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true firebase emulators:start --project=komandra-app06 --import=./firebase-data --export-on-exit
+
+
+> build
+> tsc
+
+i  emulators: Starting emulators: apphosting, auth, functions, firestore, hosting, pubsub, storage, extensions
+
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 15.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+⨯ Unable to acquire lock at /home/brad/Code/app06/.next/dev/lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.

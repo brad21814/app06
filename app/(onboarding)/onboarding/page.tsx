@@ -93,7 +93,7 @@ function OnboardingContent() {
                 await acceptInvitation(invitation.id, user.uid);
                 await updateUser(user.uid, {
                     accountId: invitation.accountId,
-                    teamId: invitation.teamId,
+                    teamId: invitation.teamIds[0], // Use first team as default context
                     role: invitation.role
                 });
                 router.push('/dashboard');
@@ -118,8 +118,8 @@ function OnboardingContent() {
             setCreatedAccountId(account.id);
             await updateUser(user.uid, { accountId: account.id, role: 'owner' });
 
-            // Auto-create "General" team
-            const team = await createTeam('General', account.id);
+            // Auto-create "All Members" team (previously "General")
+            const team = await createTeam('All Members', account.id);
             setCreatedTeamId(team.id);
             await addTeamMember(team.id, user.uid, 'owner');
             await updateUser(user.uid, { teamId: team.id });

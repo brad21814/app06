@@ -77,7 +77,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true, redirectUrl: redirect || '/dashboard' });
         }
 
-        let teamId: string | undefined;
+        let teamIds: string[] = [];
         let accountId: string | undefined;
         let userRole = 'owner';
 
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
             const invitation = inviteDoc.exists ? inviteDoc.data() : null;
 
             if (invitation && invitation.email === email && invitation.status === 'pending') {
-                teamId = invitation.teamId;
+                teamIds = invitation.teamIds;
                 accountId = invitation.accountId;
                 userRole = invitation.role;
             } else {
@@ -112,23 +112,35 @@ export async function POST(request: Request) {
 
         await userDocRef.set(newUser);
 
-        if (inviteId && teamId) {
+        if (inviteId && teamIds.length > 0) {
             const inviteQuery = await getInvitationsCollection().doc(inviteId).get();
             if (inviteQuery.exists) {
                 await inviteQuery.ref.update({ status: 'accepted' });
             }
 
-            await logActivity(teamId, newUser.id, ActivityType.ACCEPT_INVITATION);
+            // Log activity for the first team (primary association for now)
+            await logActivity(teamIds[0], newUser.id, ActivityType.ACCEPT_INVITATION);
 
-            const newTeamMemberId = getTeamMembersCollection().doc().id;
-            const newTeamMember: TeamMember = {
-                id: newTeamMemberId,
-                userId: newUser.id,
-                teamId: teamId,
-                role: userRole,
-                joinedAt: Timestamp.now() as any
-            };
-            await getTeamMembersCollection().doc(newTeamMemberId).set(newTeamMember);
+            // Add user to all teams in the invite
+            const teamMembersRef = getTeamMembersCollection();
+            // const batch = adminAuth.app.firestore().batch(); // Unused
+
+            // Note: The helper `getTeamMembersCollection` returns a collection ref.
+            // Let's do parallel promises for simplicity since batch requires db instance ref which we can get from ref.firestore
+
+            const joinPromises = teamIds.map(async (tid) => {
+                const newTeamMemberId = teamMembersRef.doc().id;
+                const newTeamMember: TeamMember = {
+                    id: newTeamMemberId,
+                    userId: newUser.id,
+                    teamId: tid,
+                    role: userRole,
+                    joinedAt: Timestamp.now() as any
+                };
+                return teamMembersRef.doc(newTeamMemberId).set(newTeamMember);
+            });
+
+            await Promise.all(joinPromises);
         }
 
         await setSession(newUser);

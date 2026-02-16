@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -20,7 +20,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Loader2 } from 'lucide-react';
+import { getTeams, createTeam, Team } from '@/lib/firebase/firestore';
 
 interface InviteMemberDialogProps {
     teamId: string;
@@ -33,6 +35,34 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([teamId]);
+    const [isCreatingTeam, setIsCreatingTeam] = useState(false);
+    const [newTeamName, setNewTeamName] = useState('');
+
+    useEffect(() => {
+        if (open) {
+            loadTeams();
+            setSelectedTeamIds([teamId]); // Reset to current team when opening
+        }
+    }, [open, teamId]);
+
+    async function loadTeams() {
+        try {
+            const fetchedTeams = await getTeams(accountId);
+            setTeams(fetchedTeams);
+        } catch (err) {
+            console.error('Failed to load teams', err);
+        }
+    }
+
+    const toggleTeam = (tId: string) => {
+        setSelectedTeamIds(prev =>
+            prev.includes(tId)
+                ? prev.filter(aaa => aaa !== tId)
+                : [...prev, tId]
+        );
+    };
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -40,11 +70,20 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
         setError(null);
 
         const formData = new FormData(event.currentTarget);
-        formData.append('teamId', teamId);
-        formData.append('accountId', accountId);
-        formData.append('invitedBy', invitedBy);
+        let finalTeamIds = [...selectedTeamIds];
 
         try {
+            if (isCreatingTeam && newTeamName.trim()) {
+                const newTeam = await createTeam(newTeamName, accountId);
+                finalTeamIds.push(newTeam.id);
+            }
+
+            if (finalTeamIds.length === 0) {
+                setError('Please select at least one team.');
+                setIsLoading(false);
+                return;
+            }
+
             const response = await fetch('/api/invite', {
                 method: 'POST',
                 headers: {
@@ -53,7 +92,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 body: JSON.stringify({
                     email: formData.get('email'),
                     role: formData.get('role'),
-                    teamId,
+                    teamIds: finalTeamIds,
                     accountId,
                     invitedBy,
                 }),
@@ -63,6 +102,8 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
 
             if (result.success) {
                 setOpen(false);
+                setIsCreatingTeam(false);
+                setNewTeamName('');
                 if (onSuccess) onSuccess();
             } else {
                 setError(result.message || 'Failed to send invitation');
@@ -86,7 +127,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 <DialogHeader>
                     <DialogTitle>Invite Team Member</DialogTitle>
                     <DialogDescription>
-                        Send an invitation to a new member to join your team.
+                        Send an invitation to a new member to join your team(s).
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit}>
@@ -118,6 +159,50 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label className="text-right mt-2">
+                                Teams
+                            </Label>
+                            <div className="col-span-3 space-y-2">
+                                <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-2">
+                                    {teams.map(team => (
+                                        <div key={team.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`team-${team.id}`}
+                                                checked={selectedTeamIds.includes(team.id)}
+                                                onCheckedChange={() => toggleTeam(team.id)}
+                                            />
+                                            <label
+                                                htmlFor={`team-${team.id}`}
+                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                            >
+                                                {team.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex items-center space-x-2 pt-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsCreatingTeam(!isCreatingTeam)}
+                                    >
+                                        {isCreatingTeam ? 'Cancel' : 'Create New Team'}
+                                    </Button>
+                                </div>
+                                {isCreatingTeam && (
+                                    <Input
+                                        placeholder="New Team Name"
+                                        value={newTeamName}
+                                        onChange={(e) => setNewTeamName(e.target.value)}
+                                        className="mt-2"
+                                    />
+                                )}
+                            </div>
+                        </div>
+
                         {error && (
                             <div className="text-sm text-red-500 text-center">
                                 {error}
