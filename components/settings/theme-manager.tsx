@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash, Edit2, Loader2 } from 'lucide-react';
+import { Plus, Trash, Edit2, Loader2, Eye, BadgeInfo } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -19,6 +19,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 interface ThemeFormProps {
     formData: {
@@ -31,20 +32,24 @@ interface ThemeFormProps {
         description: string;
         questions: string[];
     }>>;
+    readOnly?: boolean;
 }
 
-function ThemeForm({ formData, setFormData }: ThemeFormProps) {
+function ThemeForm({ formData, setFormData, readOnly = false }: ThemeFormProps) {
     const handleAddQuestion = () => {
+        if (readOnly) return;
         setFormData(prev => ({ ...prev, questions: [...prev.questions, ''] }));
     };
 
     const handleQuestionChange = (index: number, value: string) => {
+        if (readOnly) return;
         const newQuestions = [...formData.questions];
         newQuestions[index] = value;
         setFormData(prev => ({ ...prev, questions: newQuestions }));
     };
 
     const handleRemoveQuestion = (index: number) => {
+        if (readOnly) return;
         const newQuestions = formData.questions.filter((_, i) => i !== index);
         setFormData(prev => ({ ...prev, questions: newQuestions }));
     };
@@ -57,6 +62,7 @@ function ThemeForm({ formData, setFormData }: ThemeFormProps) {
                     placeholder="e.g. Trust & Safety"
                     value={formData.name}
                     onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+                    disabled={readOnly}
                 />
             </div>
             <div className="space-y-2">
@@ -65,6 +71,7 @@ function ThemeForm({ formData, setFormData }: ThemeFormProps) {
                     placeholder="Briefly describe this theme..."
                     value={formData.description}
                     onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+                    disabled={readOnly}
                 />
             </div>
             <div className="space-y-2">
@@ -76,8 +83,9 @@ function ThemeForm({ formData, setFormData }: ThemeFormProps) {
                                 placeholder={`Question ${idx + 1}`}
                                 value={q}
                                 onChange={(e) => handleQuestionChange(idx, e.target.value)}
+                                disabled={readOnly}
                             />
-                            {formData.questions.length > 1 && (
+                            {!readOnly && formData.questions.length > 1 && (
                                 <Button
                                     type="button"
                                     variant="ghost"
@@ -91,9 +99,11 @@ function ThemeForm({ formData, setFormData }: ThemeFormProps) {
                         </div>
                     ))}
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleAddQuestion} className="w-full mt-2">
-                    <Plus className="w-4 h-4 mr-2" /> Add Question
-                </Button>
+                {!readOnly && (
+                    <Button type="button" variant="outline" size="sm" onClick={handleAddQuestion} className="w-full mt-2">
+                        <Plus className="w-4 h-4 mr-2" /> Add Question
+                    </Button>
+                )}
             </div>
         </div>
     );
@@ -101,13 +111,15 @@ function ThemeForm({ formData, setFormData }: ThemeFormProps) {
 
 export function ThemeManager() {
     const { user, userData } = useAuth();
-    const [themes, setThemes] = useState<Theme[]>([]);
+    const [userThemes, setUserThemes] = useState<Theme[]>([]);
+    const [systemThemes, setSystemThemes] = useState<Theme[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
 
     // Dialog States
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isViewOpen, setIsViewOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
 
@@ -124,18 +136,30 @@ export function ThemeManager() {
             return;
         }
 
-        const q = query(getThemesCollection(), where('accountId', '==', userData.accountId));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        // Fetch User Themes
+        const userThemesQuery = query(getThemesCollection(), where('accountId', '==', userData.accountId));
+        const unsubUserThemes = onSnapshot(userThemesQuery, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
-            setThemes(data);
-            setLoading(false);
+            setUserThemes(data);
         }, (error) => {
-            console.error("Error fetching themes:", error);
+            console.error("Error fetching user themes:", error);
+        });
+
+        // Fetch System Themes
+        const systemThemesQuery = query(getThemesCollection(), where('accountId', '==', null));
+        const unsubSystemThemes = onSnapshot(systemThemesQuery, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
+            setSystemThemes(data);
+            setLoading(false); // Assume loaded when either returns or at least started
+        }, (error) => {
+            console.error("Error fetching system themes:", error);
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubUserThemes();
+            unsubSystemThemes();
+        };
     }, [userData?.accountId]);
 
     const resetForm = () => {
@@ -143,14 +167,24 @@ export function ThemeManager() {
         setSelectedTheme(null);
     };
 
-    const openEditDialog = (theme: Theme) => {
-        setSelectedTheme(theme);
+    const loadFormData = (theme: Theme) => {
         setFormData({
             name: theme.name,
             description: theme.description,
             questions: theme.questions.length ? theme.questions : ['']
         });
+    }
+
+    const openEditDialog = (theme: Theme) => {
+        setSelectedTheme(theme);
+        loadFormData(theme);
         setIsEditOpen(true);
+    };
+
+    const openViewDialog = (theme: Theme) => {
+        setSelectedTheme(theme);
+        loadFormData(theme);
+        setIsViewOpen(true);
     };
 
     const openDeleteDialog = (theme: Theme) => {
@@ -174,7 +208,7 @@ export function ThemeManager() {
             };
 
             const docRef = await addDoc(getThemesCollection(), newTheme as any);
-            setThemes([...themes, { ...newTheme, id: docRef.id } as Theme]);
+            // Local state update handled by snapshot
             setIsCreateOpen(false);
             resetForm();
         } catch (error) {
@@ -198,10 +232,7 @@ export function ThemeManager() {
             };
 
             await updateDoc(themeRef, updates);
-
-            setThemes(themes.map(t =>
-                t.id === selectedTheme.id ? { ...t, ...updates } : t
-            ));
+            // Local state update handled by snapshot
             setIsEditOpen(false);
             resetForm();
         } catch (error) {
@@ -217,7 +248,7 @@ export function ThemeManager() {
 
         try {
             await deleteDoc(doc(getThemesCollection(), selectedTheme.id));
-            setThemes(themes.filter(t => t.id !== selectedTheme.id));
+            // Local state update handled by snapshot
             setIsDeleteOpen(false);
             setSelectedTheme(null);
         } catch (error) {
@@ -227,49 +258,95 @@ export function ThemeManager() {
         }
     };
 
-
-
     if (loading) return <div>Loading themes...</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Your Themes</h3>
-                <Button onClick={() => { resetForm(); setIsCreateOpen(true); }} size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Theme
-                </Button>
+        <div className="space-y-8">
+
+            {/* System Themes Section */}
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h3 className="text-lg font-medium flex items-center gap-2">
+                            System Themes
+                            <Badge variant="secondary" className="text-xs">Standard</Badge>
+                        </h3>
+                        <p className="text-sm text-gray-500">Standard themes available to all organizations.</p>
+                    </div>
+                </div>
+
+                <div className="grid gap-4">
+                    {systemThemes.length === 0 && (
+                        <div className="text-center py-4 text-gray-500 border rounded-lg bg-gray-50 text-sm">
+                            No system themes available.
+                        </div>
+                    )}
+                    {systemThemes.map(theme => (
+                        <Card key={theme.id} className="p-4 flex flex-col md:flex-row justify-between md:items-start gap-4 bg-gray-50/50 border-dashed">
+                            <div className="flex-1 space-y-2">
+                                <div>
+                                    <h4 className="font-semibold">{theme.name}</h4>
+                                    <p className="text-sm text-gray-500">{theme.description}</p>
+                                </div>
+                                <div className="text-sm">
+                                    <span className="font-medium text-xs text-gray-500 uppercase tracking-wider">{theme.questions.length} Questions</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Button variant="outline" size="sm" onClick={() => openViewDialog(theme)}>
+                                    <Eye className="w-4 h-4 mr-2" /> View Questions
+                                </Button>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
 
-            {/* List */}
-            <div className="grid gap-4">
-                {themes.length === 0 && (
-                    <div className="text-center py-8 text-gray-500 border rounded-lg bg-gray-50">
-                        No themes found. Create one to customize your connections.
+            <div className="border-t pt-2"></div>
+
+            {/* User Themes Section */}
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h3 className="text-lg font-medium">Your Themes</h3>
+                        <p className="text-sm text-gray-500">Custom themes created for your organization.</p>
                     </div>
-                )}
-                {themes.map(theme => (
-                    <Card key={theme.id} className="p-4 flex flex-col md:flex-row justify-between md:items-start gap-4">
-                        <div className="flex-1 space-y-2">
-                            <div>
-                                <h4 className="font-semibold">{theme.name}</h4>
-                                <p className="text-sm text-gray-500">{theme.description}</p>
-                            </div>
-                            <div className="text-sm">
-                                <span className="font-medium text-xs text-gray-500 uppercase tracking-wider">{theme.questions.length} Questions</span>
-                            </div>
+                    <Button onClick={() => { resetForm(); setIsCreateOpen(true); }} size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Theme
+                    </Button>
+                </div>
+
+                <div className="grid gap-4">
+                    {userThemes.length === 0 && (
+                        <div className="text-center py-8 text-gray-500 border rounded-lg bg-gray-50">
+                            No custom themes found. Create one to customize your connections.
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(theme)}>
-                                <Edit2 className="w-4 h-4 mr-2" /> Edit
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => openDeleteDialog(theme)}>
-                                <Trash className="w-4 h-4 mr-2" /> Delete
-                            </Button>
-                        </div>
-                    </Card>
-                ))}
+                    )}
+                    {userThemes.map(theme => (
+                        <Card key={theme.id} className="p-4 flex flex-col md:flex-row justify-between md:items-start gap-4">
+                            <div className="flex-1 space-y-2">
+                                <div>
+                                    <h4 className="font-semibold">{theme.name}</h4>
+                                    <p className="text-sm text-gray-500">{theme.description}</p>
+                                </div>
+                                <div className="text-sm">
+                                    <span className="font-medium text-xs text-gray-500 uppercase tracking-wider">{theme.questions.length} Questions</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Button variant="ghost" size="sm" onClick={() => openEditDialog(theme)}>
+                                    <Edit2 className="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => openDeleteDialog(theme)}>
+                                    <Trash className="w-4 h-4 mr-2" /> Delete
+                                </Button>
+                            </div>
+                        </Card>
+                    ))}
+                </div>
             </div>
+
 
             {/* Create Dialog */}
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -302,6 +379,25 @@ export function ThemeManager() {
                             {actionLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                             Save Changes
                         </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* View Dialog (Read Only) */}
+            <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+                <DialogContent className="max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            {selectedTheme?.name}
+                            <Badge variant="secondary">System Theme</Badge>
+                        </DialogTitle>
+                        <DialogDescription>
+                            This is a standard theme and cannot be edited.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <ThemeForm formData={formData} setFormData={setFormData} readOnly={true} />
+                    <DialogFooter>
+                        <Button onClick={() => setIsViewOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

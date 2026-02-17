@@ -16,7 +16,10 @@ import {
     SelectContent,
     SelectItem,
     SelectTrigger,
-    SelectValue
+    SelectValue,
+    SelectGroup,
+    SelectLabel,
+    SelectSeparator
 } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,9 +60,10 @@ interface ScheduleFormProps {
     }>>;
     teams: Team[];
     themes: Theme[];
+    systemThemes: Theme[];
 }
 
-function ScheduleForm({ formData, setFormData, teams, themes }: ScheduleFormProps) {
+function ScheduleForm({ formData, setFormData, teams, themes, systemThemes }: ScheduleFormProps) {
     return (
         <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -98,9 +102,23 @@ function ScheduleForm({ formData, setFormData, teams, themes }: ScheduleFormProp
                         <SelectValue placeholder="Select Theme" />
                     </SelectTrigger>
                     <SelectContent>
-                        {themes.map(theme => (
-                            <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>
-                        ))}
+                        <SelectGroup>
+                            <SelectLabel>System Themes</SelectLabel>
+                            {systemThemes.map(theme => (
+                                <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>
+                            ))}
+                        </SelectGroup>
+                        {themes.length > 0 && (
+                            <>
+                                <SelectSeparator />
+                                <SelectGroup>
+                                    <SelectLabel>Your Themes</SelectLabel>
+                                    {themes.map(theme => (
+                                        <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            </>
+                        )}
                     </SelectContent>
                 </Select>
             </div>
@@ -203,6 +221,7 @@ export function ScheduleManager() {
     const { user, userData } = useAuth();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [themes, setThemes] = useState<Theme[]>([]);
+    const [systemThemes, setSystemThemes] = useState<Theme[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
@@ -233,11 +252,16 @@ export function ScheduleManager() {
         }
 
         const themesQuery = query(getThemesCollection(), where('accountId', '==', userData.accountId));
+        const systemThemesQuery = query(getThemesCollection(), where('accountId', '==', null));
         const teamsQuery = query(getTeamsCollection(), where('accountId', '==', userData.accountId));
         const schedulesQuery = query(getSchedulesCollection(), where('accountId', '==', userData.accountId));
 
         const unsubThemes = onSnapshot(themesQuery, (snapshot) => {
             setThemes(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme)));
+        });
+
+        const unsubSystemThemes = onSnapshot(systemThemesQuery, (snapshot) => {
+            setSystemThemes(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme)));
         });
 
         const unsubTeams = onSnapshot(teamsQuery, (snapshot) => {
@@ -254,6 +278,7 @@ export function ScheduleManager() {
 
         return () => {
             unsubThemes();
+            unsubSystemThemes();
             unsubTeams();
             unsubSchedules();
         };
@@ -405,7 +430,7 @@ export function ScheduleManager() {
                     </div>
                 )}
                 {schedules.map(schedule => {
-                    const theme = themes.find(t => t.id === schedule.themeId);
+                    const theme = [...themes, ...systemThemes].find(t => t.id === schedule.themeId);
                     const team = teams.find(t => t.id === schedule.teamId);
 
                     return (
@@ -429,7 +454,7 @@ export function ScheduleManager() {
                         <DialogTitle>Create New Schedule</DialogTitle>
                         <DialogDescription>Setup automated connection rules.</DialogDescription>
                     </DialogHeader>
-                    <ScheduleForm formData={formData} setFormData={setFormData} teams={teams} themes={themes} />
+                    <ScheduleForm formData={formData} setFormData={setFormData} teams={teams} themes={themes} systemThemes={systemThemes} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
                         <Button onClick={handleCreateSchedule} disabled={!formData.name || !formData.teamId || !formData.themeId || actionLoading}>
@@ -446,7 +471,7 @@ export function ScheduleManager() {
                     <DialogHeader>
                         <DialogTitle>Edit Schedule</DialogTitle>
                     </DialogHeader>
-                    <ScheduleForm formData={formData} setFormData={setFormData} teams={teams} themes={themes} />
+                    <ScheduleForm formData={formData} setFormData={setFormData} teams={teams} themes={themes} systemThemes={systemThemes} />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
                         <Button onClick={handleUpdateSchedule} disabled={!formData.name || !formData.teamId || !formData.themeId || actionLoading}>
