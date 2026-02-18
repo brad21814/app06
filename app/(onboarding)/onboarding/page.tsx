@@ -118,8 +118,8 @@ function OnboardingContent() {
             setCreatedAccountId(account.id);
             await updateUser(user.uid, { accountId: account.id, role: 'owner' });
 
-            // Auto-create "All Members" team (previously "General")
-            const team = await createTeam('All Members', account.id);
+            // Auto-create "Everyone" team (previously "All Members" / "General")
+            const team = await createTeam('Everyone', account.id);
             setCreatedTeamId(team.id);
             await addTeamMember(team.id, user.uid, 'owner');
             await updateUser(user.uid, { teamId: team.id });

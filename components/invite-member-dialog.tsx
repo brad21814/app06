@@ -188,14 +188,30 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
             }
 
             // 2. Map members to team IDs
-            const payload = parsedMembers.map(m => ({
-                email: m.email,
-                name: m.name,
-                role: m.role,
-                teamIds: m.teams
+            // Find default team "Everyone", "All Members" or "General"
+            const defaultTeamId = teams.find(t =>
+                t.name.toLowerCase() === 'everyone' ||
+                t.name.toLowerCase() === 'all members' ||
+                t.name.toLowerCase() === 'general'
+            )?.id;
+
+            const payload = parsedMembers.map(m => {
+                const memberTeamIds = m.teams
                     .map(t => teamMap.get(t.toLowerCase()) || '')
-                    .filter(id => id !== ''), // Filter out failed team creations
-            }));
+                    .filter(id => id !== '');
+
+                // Ensure default team is added if found and not already present
+                if (defaultTeamId && !memberTeamIds.includes(defaultTeamId)) {
+                    memberTeamIds.push(defaultTeamId);
+                }
+
+                return {
+                    email: m.email,
+                    name: m.name,
+                    role: m.role,
+                    teamIds: memberTeamIds
+                };
+            });
 
             // 3. Send batch invite
             const response = await fetch('/api/invite/batch', {

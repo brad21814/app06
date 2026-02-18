@@ -36,6 +36,7 @@
 - [x] BUG002: fix general member users should not have acces to /teams
 - [x] BUG003: fix general member users should not have acces to /analytics
 - [x] BUG004: fix general member users should not have acces to /schedules
+- [x] BUG005: Fix batch import not adding users to default 'All Members' team, causing visibility issues.
 
 
 

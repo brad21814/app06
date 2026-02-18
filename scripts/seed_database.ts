@@ -201,7 +201,7 @@ async function seedDefaultUserAndTeam() {
 
     // Create a user
     const userId = 'seed-user-1';
-    const email = 'user@example.com';
+    const email = 'brad+test.o@komandra.com';
     // Note: Password creation is not handled here as Admin SDK doesn't set passwords directly in the same way for emulator sometimes, 
     // but we can create the user object. 
     // For local emulator, we often just need the user record exists.
@@ -211,8 +211,8 @@ async function seedDefaultUserAndTeam() {
         await auth.createUser({
             uid: userId,
             email: email,
-            password: 'password123',
-            displayName: 'Seed User'
+            password: 'Testing123!',
+            displayName: 'Seed Owner'
         });
     } catch (e: any) {
         console.log("User might already exist (unlikely after clear): ", e.message);
@@ -221,7 +221,7 @@ async function seedDefaultUserAndTeam() {
     const userRef = db.collection('users').doc(userId);
     await userRef.set({
         id: userId,
-        name: 'Seed User',
+        name: 'Seed Owner',
         email,
         role: 'owner',
         createdAt: Timestamp.now(),
@@ -235,7 +235,7 @@ async function seedDefaultUserAndTeam() {
     const teamRef = db.collection('teams').doc(teamId);
     await teamRef.set({
         id: teamId,
-        name: 'Seed Team',
+        name: 'Everyone',
         accountId: 'account-1', // Default account
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
