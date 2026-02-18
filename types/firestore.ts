@@ -61,6 +61,7 @@ export interface Invitation {
     id: string;
     teamIds: string[]; // Replaces teamId
     accountId: string;
+    name?: string; // Optional name of the invitee
     email: string;
     role: string;
     invitedBy: string;

@@ -29,19 +29,19 @@ export const emailService = {
         }
     },
 
-    sendInviteEmail: async (to: string, inviterName: string, inviteLink: string) => {
+    sendInviteEmail: async (to: string, inviterName: string, inviteLink: string, inviteeName?: string) => {
         try {
             await client.sendEmail({
                 "From": FROM_EMAIL,
                 "To": to,
                 "Subject": "You've been invited to join a team on TeamPulp",
                 "HtmlBody": `
-          <h1>You've been invited!</h1>
+          <h1>${inviteeName ? `Hi ${inviteeName}, ` : ''}You've been invited!</h1>
           <p>${inviterName} has invited you to join their team on TeamPulp.</p>
           <p>Click the link below to accept the invitation:</p>
           <a href="${inviteLink}">Accept Invitation</a>
         `,
-                "TextBody": `You've been invited! ${inviterName} has invited you to join their team on TeamPulp. Click the link below to accept the invitation: ${inviteLink}`,
+                "TextBody": `${inviteeName ? `Hi ${inviteeName}, ` : ''}You've been invited! ${inviterName} has invited you to join their team on TeamPulp. Click the link below to accept the invitation: ${inviteLink}`,
                 "MessageStream": "outbound"
             });
             console.log(`Invite email sent to ${to}`);
