@@ -41,7 +41,33 @@ function OnboardingContent() {
     const [invitation, setInvitation] = useState<Invitation | null>(null);
 
     useEffect(() => {
-        if (user?.displayName) setName(user.displayName);
+        if (user?.email) {
+            // Pre-populate name from email if not already set
+            if (!name) {
+                setName(user.email.split('@')[0]);
+            }
+
+            // Pre-populate account name from email domain
+            if (!accountName) {
+                const parts = user.email.split('@');
+                const namePart = parts[0];
+                const domainPart = parts[1];
+
+                if (domainPart) {
+                    const domainName = domainPart.split('.')[0].toLowerCase();
+                    const commonProviders = ['gmail', 'hotmail', 'yahoo', 'outlook', 'icloud', 'protonmail', 'aol'];
+
+                    if (commonProviders.includes(domainName)) {
+                        // Capitalize first letter of name
+                        const capitalizedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                        setAccountName(`${capitalizedName}'s Organization`);
+                    } else {
+                        setAccountName(domainName);
+                    }
+                }
+            }
+        }
+        if (user?.displayName && !name) setName(user.displayName);
     }, [user]);
 
     useEffect(() => {

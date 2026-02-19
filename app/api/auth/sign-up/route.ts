@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
         const newUser: User = {
             id: newUserId,
-            name: null,
+            name: email.split('@')[0], // Set default name from email
             email,
             role: userRole,
             accountId: accountId || null,
