@@ -50,7 +50,10 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [teams, setTeams] = useState<Team[]>([]);
 
-    // Single Invite State
+    // Multi Invite State
+    const [multiInvites, setMultiInvites] = useState<Array<{ email: string; role: string; teamIds: string[] }>>([]);
+    const [email, setEmail] = useState('');
+    const [role, setRole] = useState('member');
     const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([teamId]);
     const [isCreatingTeam, setIsCreatingTeam] = useState(false);
     const [newTeamName, setNewTeamName] = useState('');
@@ -63,6 +66,9 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
         if (open) {
             loadTeams();
             setSelectedTeamIds([teamId]); // Reset to current team when opening
+            setMultiInvites([]);
+            setEmail('');
+            setRole('member');
             setParsedMembers([]);
             setError(null);
             setSuccessMessage(null);
@@ -87,13 +93,12 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
         );
     };
 
-    async function onSingleSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        setIsLoading(true);
-        setError(null);
-        setSuccessMessage(null);
+    const addInviteToList = async () => {
+        if (!email || !email.includes('@')) {
+            setError('Please enter a valid email address.');
+            return;
+        }
 
-        const formData = new FormData(event.currentTarget);
         let finalTeamIds = [...selectedTeamIds];
 
         try {
@@ -101,24 +106,52 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 const newTeam = await createTeam(newTeamName, accountId);
                 finalTeamIds.push(newTeam.id);
                 // Refresh teams list
-                loadTeams();
+                await loadTeams();
             }
 
             if (finalTeamIds.length === 0) {
                 setError('Please select at least one team.');
-                setIsLoading(false);
                 return;
             }
 
-            const response = await fetch('/api/invite', {
+            if (multiInvites.length >= 10) {
+                setError('Limit of 10 invites reached.');
+                return;
+            }
+
+            setMultiInvites([...multiInvites, { email, role, teamIds: finalTeamIds }]);
+
+            // Reset fields for next invite
+            setEmail('');
+            setRole('member');
+            setSelectedTeamIds([teamId]);
+            setIsCreatingTeam(false);
+            setNewTeamName('');
+            setError(null);
+        } catch (e) {
+            setError('Failed to add invite to list');
+        }
+    };
+
+    const removeInvite = (index: number) => {
+        setMultiInvites(prev => prev.filter((_, i) => i !== index));
+    };
+
+    async function onSendInvites() {
+        if (multiInvites.length === 0) return;
+
+        setIsLoading(true);
+        setError(null);
+        setSuccessMessage(null);
+
+        try {
+            const response = await fetch('/api/invite/batch', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    email: formData.get('email'),
-                    role: formData.get('role'),
-                    teamIds: finalTeamIds,
+                    invitations: multiInvites,
                     accountId,
                     invitedBy,
                 }),
@@ -127,12 +160,13 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
             const result = await response.json();
 
             if (result.success) {
-                setOpen(false);
-                setIsCreatingTeam(false);
-                setNewTeamName('');
-                if (onSuccess) onSuccess();
+                setSuccessMessage(`Successfully sent ${multiInvites.length} invitations.`);
+                setTimeout(() => {
+                    setOpen(false);
+                    if (onSuccess) onSuccess();
+                }, 2000);
             } else {
-                setError(result.message || 'Failed to send invitation');
+                setError(result.message || 'Failed to send invitations');
             }
         } catch (e) {
             setError('An unexpected error occurred');
@@ -154,6 +188,10 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
     const getTeamStatus = (teamName: string) => {
         const exists = teams.some(t => t.name.toLowerCase() === teamName.toLowerCase());
         return exists ? 'Existing' : 'New';
+    };
+
+    const getTeamNames = (teamIds: string[]) => {
+        return teamIds.map(id => teams.find(t => t.id === id)?.name || id).join(', ');
     };
 
     const processBatchInvite = async () => {
@@ -184,7 +222,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                     }
                 }));
                 // Refresh teams list for UI
-                loadTeams();
+                await loadTeams();
             }
 
             // 2. Map members to team IDs
@@ -256,26 +294,33 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 <DialogHeader>
                     <DialogTitle>Invite Team Member</DialogTitle>
                     <DialogDescription>
-                        Send an invitation to a new member or batch import via CSV.
+                        Send invitations to new members or batch import via CSV.
                     </DialogDescription>
                 </DialogHeader>
 
                 <Tabs defaultValue="single" value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="single">Single Invite</TabsTrigger>
+                        <TabsTrigger value="single">Multi Invite</TabsTrigger>
                         <TabsTrigger value="bulk">Bulk Import (CSV)</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="single">
-                        <form onSubmit={onSingleSubmit}>
-                            <div className="grid gap-4 py-4">
+                        <div className="space-y-4 py-4">
+                            <div className="grid gap-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="email" className="text-right">Email</Label>
-                                    <Input id="email" name="email" type="email" placeholder="colleague@example.com" className="col-span-3" required />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="colleague@example.com"
+                                        className="col-span-3"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="role" className="text-right">Role</Label>
-                                    <Select name="role" defaultValue="member">
+                                    <Select value={role} onValueChange={setRole}>
                                         <SelectTrigger className="col-span-3">
                                             <SelectValue placeholder="Select a role" />
                                         </SelectTrigger>
@@ -318,14 +363,67 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                                         )}
                                     </div>
                                 </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="button"
+                                        onClick={addInviteToList}
+                                        disabled={multiInvites.length >= 10 || !email}
+                                        variant="secondary"
+                                    >
+                                        {multiInvites.length >= 10 ? 'Limit Reached' : 'Add to List'}
+                                    </Button>
+                                </div>
                             </div>
+
+                            {multiInvites.length > 0 && (
+                                <div className="mt-6">
+                                    <h4 className="text-sm font-medium mb-3">Pending Invitations ({multiInvites.length}/10)</h4>
+                                    <div className="border rounded-md max-h-[200px] overflow-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Email</TableHead>
+                                                    <TableHead>Role</TableHead>
+                                                    <TableHead>Teams</TableHead>
+                                                    <TableHead className="w-[50px]"></TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {multiInvites.map((invite, i) => (
+                                                    <TableRow key={i}>
+                                                        <TableCell>{invite.email}</TableCell>
+                                                        <TableCell className="capitalize">{invite.role}</TableCell>
+                                                        <TableCell className="max-w-[200px] truncate">
+                                                            {getTeamNames(invite.teamIds)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => removeInvite(i)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                            >
+                                                                Remove
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            )}
+
                             <DialogFooter>
-                                <Button type="submit" disabled={isLoading}>
+                                <Button
+                                    onClick={onSendInvites}
+                                    disabled={isLoading || multiInvites.length === 0}
+                                >
                                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLoading ? 'Sending...' : 'Send Invitation'}
+                                    {isLoading ? 'Sending...' : `Send ${multiInvites.length > 0 ? multiInvites.length : ''} Invitation${multiInvites.length !== 1 ? 's' : ''}`}
                                 </Button>
                             </DialogFooter>
-                        </form>
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="bulk">
