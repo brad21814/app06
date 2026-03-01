@@ -238,8 +238,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                    Loading...
+                    <Loader2 className="animate-spin h-4 w-4" />
                   </>
                 ) : mode === 'signin' ? (
                   'Sign in'

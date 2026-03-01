@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard';
 import { getAnalyticsCollection, getUserDoc, getTeamMembersCollection } from '@/lib/firestore/admin/collections';
 import { adminDb } from '@/lib/firebase/server';
@@ -89,7 +90,7 @@ export default function AnalyticsPage() {
                 <h2 className="text-3xl font-bold tracking-tight">Analytics</h2>
             </div>
             <div className="hidden h-full flex-1 flex-col space-y-8 md:flex">
-                <Suspense fallback={<div>Loading analytics...</div>}>
+                <Suspense fallback={<div className="flex justify-center items-center p-12 text-center"><Loader2 className="animate-spin h-8 w-8 text-orange-500 mx-auto" /><p className="mt-2 text-sm text-muted-foreground">Loading analytics...</p></div>}>
                     <AnalyticsData />
                 </Suspense>
             </div>

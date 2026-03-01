@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { getUser, getTeamForUser, getUserConnections, getTeamConnections, getAnalyticsData, getRelationships } from '@/lib/firestore/admin/queries';
 import { AnalyticsSnapshot, Relationship, TeamMember, ConnectionWithParticipants } from '@/types/firestore';
 import { Connections } from '@/components/dashboard/connections';
@@ -62,7 +63,7 @@ export default function DashboardPage() {
   return (
     <section className="flex-1 p-4 lg:p-8">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Dashboard</h1>
-      <Suspense fallback={<div>Loading dashboard...</div>}>
+      <Suspense fallback={<div className="flex justify-center items-center p-12"><Loader2 className="animate-spin h-8 w-8 text-orange-500" /></div>}>
         <DashboardContent />
       </Suspense>
     </section>

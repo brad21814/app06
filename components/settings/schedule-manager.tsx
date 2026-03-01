@@ -411,7 +411,11 @@ export function ScheduleManager() {
 
 
 
-    if (loading) return <div>Loading schedules...</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center p-12">
+            <Loader2 className="animate-spin h-8 w-8 text-orange-500" />
+        </div>
+    );
 
     return (
         <div className="space-y-6">

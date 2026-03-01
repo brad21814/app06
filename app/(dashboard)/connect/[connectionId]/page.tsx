@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock } from 'lucide-react';
+import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock, Loader2 } from 'lucide-react';
 import VideoFromTwilio, { Room, LocalTrack, RemoteTrack, LocalAudioTrack, LocalVideoTrack, RemoteAudioTrack, RemoteVideoTrack } from 'twilio-video';
 import { getConnectionsCollection } from '@/lib/firestore/client/collections';
 import { updateDoc, doc, onSnapshot, Timestamp, arrayUnion } from 'firebase/firestore';
@@ -353,7 +353,13 @@ export default function ConnectionPage() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    if (isLoading) return <div className="p-8 flex justify-center">Loading connection...</div>;
+    if (isLoading) return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-gray-50">
+            <Loader2 className="animate-spin h-12 w-12 text-orange-500 mb-4" />
+            <h2 className="text-xl font-medium text-gray-900">Loading connection...</h2>
+            <p className="text-gray-500 mt-2">Preparing your video session</p>
+        </div>
+    );
 
     if (error) {
         return (

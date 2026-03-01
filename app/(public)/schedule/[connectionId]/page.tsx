@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 
 export default function SchedulePage() {
     const params = useParams();
@@ -134,7 +135,11 @@ export default function SchedulePage() {
         }
     };
 
-    if (loading) return <div className="flex justify-center p-10">Loading...</div>;
+    if (loading) return (
+        <div className="flex justify-center items-center min-h-[400px]">
+            <Loader2 className="animate-spin h-8 w-8 text-orange-500" />
+        </div>
+    );
     if (error) return <div className="flex justify-center p-10 text-red-500">{error}</div>;
     if (!connection) return null;
 
