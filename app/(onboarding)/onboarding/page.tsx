@@ -12,6 +12,8 @@ import {
     acceptInvitation,
     Invitation
 } from '@/lib/firebase/firestore';
+import { PrivacyTier } from '@/types/firestore';
+import { PrivacySelectionForm } from '@/components/auth/privacy-selection-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +34,7 @@ function OnboardingContent() {
     const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [accountName, setAccountName] = useState('');
     const [teamName, setTeamName] = useState('');
+    const [privacyTier, setPrivacyTier] = useState<PrivacyTier>(PrivacyTier.TIER_1_STANDARD);
 
     // State to track created IDs
     const [createdAccountId, setCreatedAccountId] = useState<string | null>(null);
@@ -112,7 +115,7 @@ function OnboardingContent() {
                 setError('This invitation has been revoked.');
                 return;
             }
-            await updateUser(user.uid, { name, timezone });
+            await updateUser(user.uid, { name, timezone, privacyTier });
 
             if (invitation) {
                 // If invited, accept invitation and join team
@@ -213,6 +216,12 @@ function OnboardingContent() {
                                     onChange={(e) => setTimezone(e.target.value)}
                                     required
                                     className="mt-1"
+                                />
+                            </div>
+                            <div className="mt-4">
+                                <PrivacySelectionForm
+                                    onSelect={setPrivacyTier}
+                                    selectedTier={privacyTier}
                                 />
                             </div>
                             <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>

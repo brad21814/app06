@@ -17,8 +17,6 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { createUser, getUser, getInvitation } from '@/lib/firebase/firestore';
 import { useEffect } from 'react';
-import { PrivacyTier } from '@/types/firestore';
-import { PrivacySelectionForm } from '@/components/auth/privacy-selection-form';
 
 export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const router = useRouter();
@@ -29,7 +27,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [privacyTier, setPrivacyTier] = useState<PrivacyTier | undefined>(undefined);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isEmailPreFilled, setIsEmailPreFilled] = useState(false);
@@ -56,10 +53,10 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     setLoading(true);
     setError('');
 
-    if (mode === 'signup' && !privacyTier) {
-        setError('Please select a privacy tier to continue.');
-        setLoading(false);
-        return;
+    if (mode === 'signup' && !password) {
+      setError('Please enter a password.');
+      setLoading(false);
+      return;
     }
 
     try {
@@ -78,7 +75,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         redirect,
         priceId: priceId || undefined,
         inviteId: mode === 'signup' ? (inviteId || undefined) : undefined,
-        privacyTier: mode === 'signup' ? privacyTier : undefined,
       };
 
       const response = await fetch(endpoint, {
@@ -118,10 +114,8 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     setLoading(true);
     setError('');
 
-    if (mode === 'signup' && !privacyTier) {
-        setError('Please select a privacy tier before signing in with Google.');
-        setLoading(false);
-        return;
+    if (mode === 'signup' && false) {
+      // No longer needed here
     }
 
     try {
@@ -136,7 +130,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         idToken,
         redirect,
         inviteId: inviteId || undefined,
-        privacyTier: mode === 'signup' ? privacyTier : undefined,
       };
 
       const response = await fetch(endpoint, {
@@ -232,15 +225,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                 />
               </div>
             </div>
-
-            {mode === 'signup' && (
-              <div className="mt-4">
-                <PrivacySelectionForm 
-                    onSelect={setPrivacyTier} 
-                    selectedTier={privacyTier} 
-                />
-              </div>
-            )}
 
             {error && (
               <div className="text-red-500 text-sm">{error}</div>

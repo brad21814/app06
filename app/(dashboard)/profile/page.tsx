@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { updateAccount } from '@/app/(login)/actions';
 import { useAuth } from '@/lib/firebase/auth-context';
+import { PrivacyManager } from '@/components/settings/privacy-manager';
 
 
 type ActionState = {
@@ -71,6 +72,7 @@ function AccountFormWithData({ state }: { state: ActionState }) {
 }
 
 export default function GeneralPage() {
+  const { user, userData } = useAuth();
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
     updateAccount,
     {}
@@ -112,6 +114,20 @@ export default function GeneralPage() {
           </form>
         </CardContent>
       </Card>
+
+      <div className="mt-8">
+        <h2 className="text-lg lg:text-2xl font-medium text-gray-900 mb-6">
+          Privacy Settings
+        </h2>
+        <Card>
+          <CardContent className="pt-6">
+            <PrivacyManager
+              uid={user?.uid || ''}
+              initialTier={userData?.privacyTier}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </section>
   );
 }

@@ -27,11 +27,17 @@ test('test', async ({ page }) => {
     await page.getByRole('textbox', { name: 'Password' }).fill('Testing123!');
     await page.getByRole('button', { name: 'Sign up' }).click();
     await page.waitForTimeout(5000);
+
+    // Onboarding Step 1: Profile & Privacy
+    await expect(page).toHaveURL(/.*onboarding/);
+    await page.getByLabel(/Tier 2: Controlled/i).check();
     await page.getByRole('button', { name: 'Continue' }).click();
+
+    // Onboarding Step 2: Account
+    await page.waitForTimeout(2000);
     await page.getByRole('textbox', { name: 'Account Name' }).click();
     await page.getByRole('textbox', { name: 'Account Name' }).fill('Acme');
     await page.getByRole('button', { name: 'Create Account & Finish' }).click();
     await page.waitForTimeout(5000);
-    await expect(page).toHaveURL('http://localhost:3000/dashboard');
-
+    await expect(page).toHaveURL(/.*dashboard/);
 });
