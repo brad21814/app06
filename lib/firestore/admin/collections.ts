@@ -9,7 +9,8 @@ import {
     passwordResetTokenConverter,
     analyticsConverter,
     connectionConverter,
-    relationshipConverter
+    relationshipConverter,
+    summaryConverter
 } from './converters';
 import {
     User,
@@ -20,7 +21,8 @@ import {
     PasswordResetToken,
     AnalyticsSnapshot,
     Connection,
-    Relationship
+    Relationship,
+    Summary
 } from '@/types/firestore';
 
 export const getUsersCollection = (): CollectionReference<User> =>
@@ -55,3 +57,9 @@ export const getConnectionsCollection = (): CollectionReference<Connection> =>
 
 export const getRelationshipsCollection = (): CollectionReference<Relationship> =>
     adminDb.collection('relationships').withConverter(relationshipConverter);
+
+export const getSummariesCollection = (): CollectionReference<Summary> =>
+    adminDb.collection('summaries').withConverter(summaryConverter);
+
+export const getSummaryDoc = (summaryId: string): DocumentReference<Summary> =>
+    adminDb.collection('summaries').doc(summaryId).withConverter(summaryConverter);

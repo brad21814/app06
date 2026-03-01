@@ -15,6 +15,8 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 
+import { PrivacyTier } from '@/types/firestore';
+
 export interface UserData {
     uid: string;
     email: string;
@@ -26,6 +28,7 @@ export interface UserData {
     timezone?: string;
     hasDismissedGettingStarted?: boolean;
     createdAt: Timestamp;
+    privacyTier?: PrivacyTier;
 }
 
 export interface Account {

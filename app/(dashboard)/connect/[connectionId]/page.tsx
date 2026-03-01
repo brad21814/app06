@@ -457,42 +457,48 @@ export default function ConnectionPage() {
                 </aside>
 
                 {/* Main Panel */}
-                <main className="flex-1 p-6 overflow-y-auto">
+                <main className="flex-1 p-6 overflow-y-auto flex flex-col">
                     {room ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full max-h-[60vh] mb-6">
-                            {/* Local Video */}
-                            <Card className="bg-gray-900 border-0 overflow-hidden relative">
-                                <CardContent className="p-0 h-full flex items-center justify-center text-white">
+                        <div className="relative flex-none h-[50vh] min-h-[300px] mb-6 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-900 shadow-inner group">
+                            {/* Main (Remote) Video */}
+                            <div className="absolute inset-0 z-0">
+                                {participants.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                                            <Users className="w-8 h-8" />
+                                        </div>
+                                        <p className="text-lg font-medium">Waiting for partner...</p>
+                                        <p className="text-sm">They'll appear here once they join</p>
+                                    </div>
+                                ) : (
+                                    participants.map(participant => (
+                                        <Participant
+                                            key={participant.sid}
+                                            participant={participant}
+                                            localName={connection?.participants.find(p => p.id === participant.identity)?.name || participant.identity}
+                                        />
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Local (Self) Video View - Small preview in bottom right */}
+                            <div className="absolute bottom-4 right-4 z-10 w-20 h-28 md:w-32 md:h-44 rounded-xl overflow-hidden shadow-2xl border-2 border-white/20 bg-gray-800 group-hover:scale-105 transition-transform duration-300">
+                                <div className="p-0 h-full flex items-center justify-center text-white relative">
                                     {localVideoTrack ? (
                                         <VideoTrack track={localVideoTrack} />
                                     ) : (
-                                        <div className="flex flex-col items-center">
-                                            <Avatar className="w-20 h-20 mb-4 bg-gray-700">
+                                        <div className="flex flex-col items-center p-4 text-center">
+                                            <Avatar className="w-12 h-12 mb-2 bg-gray-700">
                                                 <AvatarFallback>Me</AvatarFallback>
                                             </Avatar>
-                                            <p className="text-sm text-gray-400">Camera Off</p>
+                                            <p className="text-[10px] text-gray-400">Camera Off</p>
                                         </div>
                                     )}
-                                    <div className="absolute bottom-4 left-4 bg-black/50 px-2 py-1 rounded text-xs font-medium">You</div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Remote Videos */}
-                            {participants.length === 0 ? (
-                                <Card className="bg-gray-900 border-0">
-                                    <CardContent className="flex flex-col items-center justify-center h-full text-white">
-                                        <p className="mb-2">Waiting for partner...</p>
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                participants.map(participant => (
-                                    <Participant
-                                        key={participant.sid}
-                                        participant={participant}
-                                        localName={connection?.participants.find(p => p.id === participant.identity)?.name || participant.identity}
-                                    />
-                                ))
-                            )}
+                                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-[10px] font-medium border border-white/10">
+                                        You
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <Card className="h-full flex flex-col items-center justify-center text-center p-8 border-dashed">
@@ -512,7 +518,7 @@ export default function ConnectionPage() {
 
                     {/* Questions Section with Timer */}
                     {room && (
-                        <div className="mt-4">
+                        <div className="mt-4 flex-none">
                             <h2 className="text-xl font-semibold mb-4">Theme Questions</h2>
 
                             {!connection?.startedAt ? (

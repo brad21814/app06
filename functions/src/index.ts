@@ -199,9 +199,10 @@ import { CloudTasksService } from "./services/cloudTasks";
 
 // Import AI Analysis Service
 import { AiAnalysisService } from "./services/aiAnalysis";
+import { PrivacyService } from "./services/privacy";
 // We need to import Connection type to safely cast
 // Correct path is relative to src
-import { Connection } from "../../types/firestore";
+import { Connection, SummaryStatus } from "../../types/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 
 // Helper function to aggregate data
@@ -244,6 +245,20 @@ export const onConnectionUpdate = onDocumentUpdated("connections/{connectionId}"
 });
 
 async function analyzeConnection(connectionId: string, connectionData: Connection) {
+    // 0. Check Privacy Restrictions for Proposer and Confirmer
+    const proposerId = connectionData.proposerId;
+    const confirmerId = connectionData.confirmerId;
+
+    if (!proposerId || !confirmerId) return;
+
+    const [proposerCanStore, confirmerCanStore] = await Promise.all([
+        PrivacyService.shouldStoreTranscript(proposerId),
+        PrivacyService.shouldStoreTranscript(confirmerId)
+    ]);
+
+    // Tier 3: If either user has Tier 3, do not store transcript
+    const shouldStoreTranscriptData = proposerCanStore && confirmerCanStore;
+
     // 1. Get Transcript Text
     let transcriptText = "";
 
@@ -274,12 +289,59 @@ async function analyzeConnection(connectionId: string, connectionData: Connectio
 
     const analysisResult = await AiAnalysisService.analyzeConnection(transcriptText, questionEvents);
 
-    // 3. Save Analysis
-    await db.collection('connections').doc(connectionId).update({
+    // 3. Handle Privacy Tier for Summary Approval (Tier 2 logic)
+    const [proposerPrivacy, confirmerPrivacy] = await Promise.all([
+        PrivacyService.getInitialSummaryStatus(proposerId),
+        PrivacyService.getInitialSummaryStatus(confirmerId)
+    ]);
+
+    const isApprovalRequired = proposerPrivacy.isApprovalRequired || confirmerPrivacy.isApprovalRequired;
+
+    if (isApprovalRequired) {
+        // Save to separate summaries collection for manual approval tracking
+        const summaryData = {
+            userId: proposerId,
+            transcriptId: connectionData.transcriptSid || connectionId,
+            content: analysisResult.summary,
+            status: SummaryStatus.PENDING_APPROVAL,
+            createdAt: Timestamp.now(),
+            connectionId: connectionId
+        };
+        
+        if (proposerPrivacy.isApprovalRequired) {
+            await db.collection('summaries').add(summaryData);
+        }
+        
+        if (confirmerPrivacy.isApprovalRequired) {
+            await db.collection('summaries').add({
+                ...summaryData,
+                userId: confirmerId
+            });
+        }
+        console.log(`[analyzeConnection] Summary queued for manual approval for connection ${connectionId}`);
+    }
+
+    // 4. Save Analysis (and maybe redact transcript based on Tier 3)
+    const updatePayload: any = {
         analysis: analysisResult,
         updatedAt: Timestamp.now()
-    });
-    console.log(`[analyzeConnection] Analysis saved for ${connectionId}`);
+    };
+
+    if (!shouldStoreTranscriptData) {
+        // Tier 3: Remove transcript info from the connection doc
+        updatePayload.transcript = null;
+        updatePayload.transcriptSid = null;
+        updatePayload.transcriptStatus = 'deleted';
+        console.log(`[analyzeConnection] Tier 3 detected. Redacting transcript data for ${connectionId}`);
+    } else {
+        // Not Tier 3, save summary to main doc if no approval required or if we want it visible
+        if (!isApprovalRequired) {
+            updatePayload.summary = analysisResult.summary;
+        }
+    }
+
+    await db.collection('connections').doc(connectionId).update(updatePayload);
+    console.log(`[analyzeConnection] Analysis complete for ${connectionId}`);
 }
 
 

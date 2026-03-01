@@ -1,0 +1,11 @@
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.log
+.env*
+firebase-data/
+functions/lib/
+functions/node_modules/
+public/

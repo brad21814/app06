@@ -12,7 +12,8 @@ import {
     PasswordResetToken,
     AnalyticsSnapshot,
     Connection,
-    Relationship
+    Relationship,
+    Summary
 } from '@/types/firestore';
 
 const createConverter = <T>(): FirestoreDataConverter<T> => ({
@@ -40,3 +41,4 @@ export const passwordResetTokenConverter = createConverter<PasswordResetToken>()
 export const analyticsConverter = createConverter<AnalyticsSnapshot>();
 export const connectionConverter = createConverter<Connection>();
 export const relationshipConverter = createConverter<Relationship>();
+export const summaryConverter = createConverter<Summary>();

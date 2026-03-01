@@ -20,6 +20,7 @@ const signUpSchema = z.object({
     inviteId: z.string().optional(),
     redirect: z.string().optional(),
     priceId: z.string().optional(),
+    privacyTier: z.string().optional(),
 });
 
 async function logActivity(
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const { idToken, inviteId, redirect, priceId } = result.data;
+        const { idToken, inviteId, redirect, priceId, privacyTier } = result.data;
 
         // Verify ID Token
         const decodedToken = await adminAuth.verifyIdToken(idToken);
@@ -108,6 +109,7 @@ export async function POST(request: Request) {
             accountId: accountId || null,
             createdAt: Timestamp.now() as any,
             updatedAt: Timestamp.now() as any,
+            privacyTier: (privacyTier as any) || null,
         };
 
         await userDocRef.set(newUser);

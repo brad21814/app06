@@ -17,6 +17,8 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { createUser, getUser, getInvitation } from '@/lib/firebase/firestore';
 import { useEffect } from 'react';
+import { PrivacyTier } from '@/types/firestore';
+import { PrivacySelectionForm } from '@/components/auth/privacy-selection-form';
 
 export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const router = useRouter();
@@ -27,6 +29,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [privacyTier, setPrivacyTier] = useState<PrivacyTier | undefined>(undefined);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isEmailPreFilled, setIsEmailPreFilled] = useState(false);
@@ -53,6 +56,12 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     setLoading(true);
     setError('');
 
+    if (mode === 'signup' && !privacyTier) {
+        setError('Please select a privacy tier to continue.');
+        setLoading(false);
+        return;
+    }
+
     try {
       let userCredential;
       if (mode === 'signin') {
@@ -69,6 +78,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         redirect,
         priceId: priceId || undefined,
         inviteId: mode === 'signup' ? (inviteId || undefined) : undefined,
+        privacyTier: mode === 'signup' ? privacyTier : undefined,
       };
 
       const response = await fetch(endpoint, {
@@ -107,21 +117,17 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
+
+    if (mode === 'signup' && !privacyTier) {
+        setError('Please select a privacy tier before signing in with Google.');
+        setLoading(false);
+        return;
+    }
+
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
-
-      // We use sign-in endpoint for Google Auth for simplicity, 
-      // but sign-up logic might be needed if they are new?
-      // Actually, if we use the sign-up endpoint, it checks if user exists and logs them in.
-      // IF we use sign-in endpoint, it requires user doc to exist.
-      // Safe bet: Use sign-up endpoint for Google Auth if we don't know?
-      // OR, try sign-in, if 404, try sign-up?
-      // Better: Use a dedicated /api/auth/google or just use sign-up which is idempotent-ish.
-      // My refactored sign-up logic: checks if user doc exists -> signs in.
-      // So sign-up is safe for existing users too.
-      // Let's use sign-up for Google Auth to ensure user doc creation.
 
       const endpoint = '/api/auth/sign-up';
       // Note: sign-up schema expects idToken.
@@ -129,7 +135,8 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
       const body = {
         idToken,
         redirect,
-        inviteId: inviteId || undefined
+        inviteId: inviteId || undefined,
+        privacyTier: mode === 'signup' ? privacyTier : undefined,
       };
 
       const response = await fetch(endpoint, {
@@ -225,6 +232,15 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                 />
               </div>
             </div>
+
+            {mode === 'signup' && (
+              <div className="mt-4">
+                <PrivacySelectionForm 
+                    onSelect={setPrivacyTier} 
+                    selectedTier={privacyTier} 
+                />
+              </div>
+            )}
 
             {error && (
               <div className="text-red-500 text-sm">{error}</div>

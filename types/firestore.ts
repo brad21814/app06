@@ -1,5 +1,16 @@
 import { Timestamp } from 'firebase/firestore';
 
+export enum PrivacyTier {
+    TIER_1_STANDARD = 'TIER_1',
+    TIER_2_CONTROLLED = 'TIER_2',
+    TIER_3_PRIVATE = 'TIER_3'
+}
+
+export enum SummaryStatus {
+    PENDING_APPROVAL = 'PENDING_APPROVAL',
+    APPROVED = 'APPROVED'
+}
+
 export interface User {
     id: string; // UID from Authentication
     name: string | null;
@@ -12,6 +23,7 @@ export interface User {
     accountId?: string | null;
     hasDismissedGettingStarted?: boolean;
     photoURL?: string | null;
+    privacyTier?: PrivacyTier;
 }
 
 export interface Account {
@@ -208,4 +220,13 @@ export interface Transcript {
     dateUpdated: Timestamp;
     url?: string;
     duration?: number;
+}
+
+export interface Summary {
+    id: string;
+    userId: string;
+    transcriptId: string;
+    content: string;
+    status: SummaryStatus;
+    createdAt: Timestamp;
 }

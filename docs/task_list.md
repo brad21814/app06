@@ -14,8 +14,8 @@
 
 - [ ] TASK008: Modify the connections page once a connection is completed it should show a summary of the questions and answers. e.g. when did it happen, what questions were asked, who were the participants and a summary of the responses per question. Maybe keep a Reconnect button that would start the session again and overwrite any assets recorded from the old session.
 
-
 - [ ] TASK012: Allow changing existing team member roles from the Team management page. They cannot be removed from the 'All Members' team.  They can be removed from other teams.  The owner cannot be changed.
+
 - [ ] TASK013: stripe integration with trial period and tiered subscription based on user count. (prevent adding more users if user limit is reacehd)
 
 - [ ] TASK014: Allow users to use custom backgrounds in video calls.
