@@ -115,19 +115,15 @@ function OnboardingContent() {
                 setError('This invitation has been revoked.');
                 return;
             }
-            await updateUser(user.uid, { name, timezone, privacyTier });
+            // Save profile data partially or just proceed if we want to save all at once
+            // For now, let's update name and timezone as they are confirmed
+            await updateUser(user.uid, { name, timezone });
 
             if (invitation) {
-                // If invited, accept invitation and join team
-                await acceptInvitation(invitation.id, user.uid);
-                await updateUser(user.uid, {
-                    accountId: invitation.accountId,
-                    teamId: invitation.teamIds[0], // Use first team as default context
-                    role: invitation.role
-                });
-                router.push('/dashboard');
+                // If invited, skip Step 2 (Account) and go to Step 3 (Privacy)
+                setStep(3);
             } else {
-                // If not invited, proceed to Account Setup (Admin flow)
+                // If not invited, proceed to Step 2: Account Setup (Admin flow)
                 setStep(2);
             }
         } catch (err: any) {
@@ -147,13 +143,42 @@ function OnboardingContent() {
             setCreatedAccountId(account.id);
             await updateUser(user.uid, { accountId: account.id, role: 'owner' });
 
-            // Auto-create "Everyone" team (previously "All Members" / "General")
+            // Auto-create "Everyone" team
             const team = await createTeam('Everyone', account.id);
             setCreatedTeamId(team.id);
             await addTeamMember(team.id, user.uid, 'owner');
             await updateUser(user.uid, { teamId: team.id });
 
-            // Redirect to dashboard (Invite step moved to dashboard checklist)
+            // Go to Step 3: Privacy Management
+            setStep(3);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePrivacySetup = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            if (!user) return;
+
+            // Save final privacy selection
+            await updateUser(user.uid, { privacyTier });
+
+            if (invitation) {
+                // If invited, finalize invitation acceptance
+                await acceptInvitation(invitation.id, user.uid);
+                await updateUser(user.uid, {
+                    accountId: invitation.accountId,
+                    teamId: invitation.teamIds[0], // Use first team as default context
+                    role: invitation.role
+                });
+            }
+
+            // All steps complete, redirect to dashboard
             router.push('/dashboard');
         } catch (err: any) {
             setError(err.message);
@@ -178,11 +203,14 @@ function OnboardingContent() {
                         <div className={`h-2 w-2 rounded-full ${step >= 1 ? 'bg-orange-500' : 'bg-gray-300'}`} />
                         <div className={`h-1 w-8 ${step >= 2 ? 'bg-orange-500' : 'bg-gray-300'}`} />
                         <div className={`h-2 w-2 rounded-full ${step >= 2 ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                        <div className={`h-1 w-8 ${step >= 3 ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step >= 3 ? 'bg-orange-500' : 'bg-gray-300'}`} />
                     </div>
                 </div>
                 <h2 className="text-center text-3xl font-extrabold text-gray-900">
                     {step === 1 && 'Complete your profile'}
                     {step === 2 && 'Create your account'}
+                    {step === 3 && 'Privacy settings'}
                 </h2>
             </div>
 
@@ -218,12 +246,6 @@ function OnboardingContent() {
                                     className="mt-1"
                                 />
                             </div>
-                            <div className="mt-4">
-                                <PrivacySelectionForm
-                                    onSelect={setPrivacyTier}
-                                    selectedTier={privacyTier}
-                                />
-                            </div>
                             <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>
                                 {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Continue'}
                             </Button>
@@ -233,6 +255,9 @@ function OnboardingContent() {
                     {/* Step 2: Account (Admin only) */}
                     {step === 2 && (
                         <form onSubmit={handleAccountSetup} className="space-y-6">
+                            <div className="text-sm text-gray-500 mb-4 text-center">
+                                This will be the name of your organization.
+                            </div>
                             <div>
                                 <Label htmlFor="accountName">Account Name</Label>
                                 <Input
@@ -245,11 +270,25 @@ function OnboardingContent() {
                                 />
                             </div>
                             <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>
-                                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Create Account & Finish'}
+                                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Continue'}
                             </Button>
                         </form>
                     )}
 
+                    {/* Step 3: Privacy Management */}
+                    {step === 3 && (
+                        <form onSubmit={handlePrivacySetup} className="space-y-6">
+                            <div className="mt-4">
+                                <PrivacySelectionForm
+                                    onSelect={setPrivacyTier}
+                                    selectedTier={privacyTier}
+                                />
+                            </div>
+                            <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>
+                                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Finish'}
+                            </Button>
+                        </form>
+                    )}
 
                 </div>
             </div>
