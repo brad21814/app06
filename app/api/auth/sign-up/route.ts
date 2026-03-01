@@ -108,7 +108,6 @@ export async function POST(request: Request) {
             accountId: accountId || null,
             createdAt: Timestamp.now() as any,
             updatedAt: Timestamp.now() as any,
-            privacyTier: undefined,
         };
 
         await userDocRef.set(newUser);
