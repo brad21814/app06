@@ -62,17 +62,17 @@ env:
       - BUILD
       - RUNTIME
   - variable: STRIPE_PRICE_ID_LAUNCHPAD
-    value: 1200
+    value: price_1T6bwAG06ui0blDzif29XydT
     availability:
       - BUILD
       - RUNTIME
   - variable: STRIPE_PRICE_ID_GROWTH
-    value: 2400
+    value: price_1T6bwaG06ui0blDzwwVt8SKL
     availability:
       - BUILD
       - RUNTIME
   - variable: STRIPE_PRICE_ID_CULTURE
-    value: 4800
+    value: price_1T6bx4G06ui0blDzZX8zI7Dr
     availability:
       - BUILD
       - RUNTIME
