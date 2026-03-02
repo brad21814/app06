@@ -56,6 +56,26 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: pk_test_51KaBPTG06ui0blDz3wJ87AUoXQ1DZIeV5vq2a99IY3cAMRiDo11XuZajaZXFCxtNoUEP4tWaeWAU5aT4POrQvncq00xggQk3W4
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: STRIPE_PRICE_ID_LAUNCHPAD
+    value: 1200
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: STRIPE_PRICE_ID_GROWTH
+    value: 2400
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: STRIPE_PRICE_ID_CULTURE
+    value: 4800
+    availability:
+      - BUILD
+      - RUNTIME
 
   # Grant access to secrets in Cloud Secret Manager.
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters

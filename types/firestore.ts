@@ -32,6 +32,22 @@ export interface Account {
     ownerId: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
+    userCount?: number;
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    subscriptionStatus?: 'trialing' | 'active' | 'past_due' | 'canceled' | null;
+    subscriptionTier?: 'launchpad' | 'growth' | 'culture' | null;
+    trialEndsAt?: Timestamp | null;
+    currentPeriodEnd?: Timestamp | null;
+}
+
+export interface SubscriptionLog {
+    id: string;
+    accountId: string;
+    type: 'trial_started' | 'paid_started' | 'tier_changed' | 'payment_failed';
+    fromTier?: string | null;
+    toTier?: string | null;
+    createdAt: Timestamp;
 }
 
 export interface Team {

@@ -10,7 +10,9 @@ import {
     analyticsConverter,
     connectionConverter,
     relationshipConverter,
-    summaryConverter
+    summaryConverter,
+    accountConverter,
+    subscriptionLogConverter
 } from './converters';
 import {
     User,
@@ -22,7 +24,9 @@ import {
     AnalyticsSnapshot,
     Connection,
     Relationship,
-    Summary
+    Summary,
+    Account,
+    SubscriptionLog
 } from '@/types/firestore';
 
 export const getUsersCollection = (): CollectionReference<User> =>
@@ -36,6 +40,12 @@ export const getTeamsCollection = (): CollectionReference<Team> =>
 
 export const getTeamDoc = (teamId: string): DocumentReference<Team> =>
     adminDb.collection('teams').doc(teamId).withConverter(teamConverter);
+
+export const getAccountsCollection = (): CollectionReference<Account> =>
+    adminDb.collection('accounts').withConverter(accountConverter);
+
+export const getAccountDoc = (accountId: string): DocumentReference<Account> =>
+    adminDb.collection('accounts').doc(accountId).withConverter(accountConverter);
 
 export const getTeamMembersCollection = (): CollectionReference<TeamMember> =>
     adminDb.collection('team_members').withConverter(teamMemberConverter);
@@ -63,3 +73,6 @@ export const getSummariesCollection = (): CollectionReference<Summary> =>
 
 export const getSummaryDoc = (summaryId: string): DocumentReference<Summary> =>
     adminDb.collection('summaries').doc(summaryId).withConverter(summaryConverter);
+
+export const getSubscriptionLogsCollection = (accountId: string): CollectionReference<SubscriptionLog> =>
+    adminDb.collection('accounts').doc(accountId).collection('subscriptionLogs').withConverter(subscriptionLogConverter);

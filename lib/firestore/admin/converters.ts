@@ -13,7 +13,9 @@ import {
     AnalyticsSnapshot,
     Connection,
     Relationship,
-    Summary
+    Summary,
+    Account,
+    SubscriptionLog
 } from '@/types/firestore';
 
 const createConverter = <T>(): FirestoreDataConverter<T> => ({
@@ -42,3 +44,5 @@ export const analyticsConverter = createConverter<AnalyticsSnapshot>();
 export const connectionConverter = createConverter<Connection>();
 export const relationshipConverter = createConverter<Relationship>();
 export const summaryConverter = createConverter<Summary>();
+export const accountConverter = createConverter<Account>();
+export const subscriptionLogConverter = createConverter<SubscriptionLog>();

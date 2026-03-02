@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-03-01
 
 ## Active Technologies
+- TypeScript (Next.js 15+ App Router) + `stripe`, `firebase-admin`, `firebase` (001-stripe-subscription-management)
+- Firestore (Organizations, Subscriptions, Users) (001-stripe-subscription-management)
 
 - TypeScript (Next.js) + Next.js App Router, Firebase (Firestore, Auth), Tailwind CSS (001-privacy-management-tiers)
 
@@ -16,12 +18,14 @@ tests/
 ## Commands
 
 npm test && npm run lint
+stripe listen --forward-to localhost:3000/api/stripe/webhook
 
 ## Code Style
 
 TypeScript (Next.js): Follow standard conventions
 
 ## Recent Changes
+- 001-stripe-subscription-management: Added TypeScript (Next.js 15+ App Router) + `stripe`, `firebase-admin`, `firebase`
 
 - 001-privacy-management-tiers: Added TypeScript (Next.js) + Next.js App Router, Firebase (Firestore, Auth), Tailwind CSS
 

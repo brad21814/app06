@@ -12,6 +12,7 @@ import {
     acceptInvitation,
     Invitation
 } from '@/lib/firebase/firestore';
+import { syncSubscriptionSeats } from '@/lib/actions/members';
 import { PrivacyTier } from '@/types/firestore';
 import { PrivacySelectionForm } from '@/components/auth/privacy-selection-form';
 import { Button } from '@/components/ui/button';
@@ -149,6 +150,9 @@ function OnboardingContent() {
             await addTeamMember(team.id, user.uid, 'owner');
             await updateUser(user.uid, { teamId: team.id });
 
+            // Sync seats to adjust billing/limits (in case)
+            await syncSubscriptionSeats(account.id);
+
             // Go to Step 3: Privacy Management
             setStep(3);
         } catch (err: any) {
@@ -176,6 +180,9 @@ function OnboardingContent() {
                     teamId: invitation.teamIds[0], // Use first team as default context
                     role: invitation.role
                 });
+                
+                // Sync seats to adjust billing/limits
+                await syncSubscriptionSeats(invitation.accountId);
             }
 
             // All steps complete, redirect to dashboard

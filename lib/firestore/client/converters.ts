@@ -16,7 +16,8 @@ import {
     Schedule,
     Theme,
     Connection,
-    AnalyticsSnapshot
+    AnalyticsSnapshot,
+    SubscriptionLog
 } from '@/types/firestore';
 
 const createConverter = <T>(): FirestoreDataConverter<T> => ({
@@ -48,3 +49,4 @@ export const scheduleConverter = createConverter<Schedule>();
 export const themeConverter = createConverter<Theme>();
 export const connectionConverter = createConverter<Connection>();
 export const analyticsConverter = createConverter<AnalyticsSnapshot>();
+export const subscriptionLogConverter = createConverter<SubscriptionLog>();

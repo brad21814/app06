@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getInvitationsCollection, getUserDoc } from '@/lib/firestore/admin/collections';
-import { Invitation } from '@/types/firestore';
+import { getInvitationsCollection, getUserDoc, getAccountDoc } from '@/lib/firestore/admin/collections';
+import { Invitation, Account } from '@/types/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 import { emailService } from '@/lib/email';
 
@@ -12,6 +12,19 @@ export async function POST(request: Request) {
 
         if (!invitations || !Array.isArray(invitations) || !invitations.length || !accountId || !invitedBy) {
             return NextResponse.json({ message: 'Missing required fields', success: false }, { status: 400 });
+        }
+
+        // Hard Limit check
+        const accountDoc = await getAccountDoc(accountId).get();
+        if (accountDoc.exists) {
+            const accountData = accountDoc.data() as Account;
+            if (accountData.subscriptionStatus === 'trialing' && (accountData.userCount || 0) + invitations.length > 9) {
+                return NextResponse.json({ 
+                    message: 'Trial user limit reached. Please upgrade your subscription to invite more members.', 
+                    success: false,
+                    limitReached: true
+                }, { status: 403 });
+            }
         }
 
         // Get inviter details

@@ -85,10 +85,18 @@ export const updateUser = async (uid: string, data: Partial<UserData>) => {
 
 // Account Operations
 export const createAccount = async (name: string, ownerId: string) => {
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+
     const accRef = await addDoc(collection(db, 'accounts'), {
         name,
         ownerId,
         createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        userCount: 1, // Start with 1 for the owner
+        subscriptionStatus: 'trialing',
+        subscriptionTier: 'launchpad',
+        trialEndsAt: Timestamp.fromDate(trialEndsAt),
     });
     return { id: accRef.id, name, ownerId };
 };

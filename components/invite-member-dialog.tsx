@@ -34,6 +34,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Loader2, Upload, AlertCircle } from 'lucide-react';
 import { getTeams, createTeam, Team } from '@/lib/firebase/firestore';
 import { parseCSV, CSVMember } from '@/lib/csv';
+import Link from 'next/link';
 
 interface InviteMemberDialogProps {
     teamId: string;
@@ -47,6 +48,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
     const [activeTab, setActiveTab] = useState('single');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [limitReached, setLimitReached] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [teams, setTeams] = useState<Team[]>([]);
 
@@ -71,6 +73,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
             setRole('member');
             setParsedMembers([]);
             setError(null);
+            setLimitReached(false);
             setSuccessMessage(null);
             setActiveTab('single');
         }
@@ -128,6 +131,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
             setIsCreatingTeam(false);
             setNewTeamName('');
             setError(null);
+            setLimitReached(false);
         } catch (e) {
             setError('Failed to add invite to list');
         }
@@ -142,6 +146,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
 
         setIsLoading(true);
         setError(null);
+        setLimitReached(false);
         setSuccessMessage(null);
 
         try {
@@ -167,6 +172,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 }, 2000);
             } else {
                 setError(result.message || 'Failed to send invitations');
+                if (result.limitReached) setLimitReached(true);
             }
         } catch (e) {
             setError('An unexpected error occurred');
@@ -272,6 +278,7 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 }, 2000);
             } else {
                 setError(result.message || 'Batch invite failed');
+                if (result.limitReached) setLimitReached(true);
             }
 
         } catch (err) {
@@ -478,8 +485,15 @@ export function InviteMemberDialog({ teamId, accountId, invitedBy, onSuccess }: 
                 </Tabs>
 
                 {error && (
-                    <div className="text-sm text-red-500 text-center flex items-center justify-center gap-2">
-                        <AlertCircle className="h-4 w-4" /> {error}
+                    <div className="text-sm text-red-500 text-center flex flex-col items-center justify-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" /> {error}
+                        </div>
+                        {limitReached && (
+                            <Link href="/settings/billing" className="text-blue-600 underline font-medium">
+                                Upgrade to Growth Engine
+                            </Link>
+                        )}
                     </div>
                 )}
                 {successMessage && (
