@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { InviteMemberDialog } from '@/components/invite-member-dialog';
 import useSWR from 'swr';
 import { TeamDataWithMembers, User } from '@/types/firestore';
-import { removeTeamMember } from '@/app/(login)/actions';
+import { removeTeamMember, updateTeamMemberRole } from '@/app/(login)/actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ActionState = {
     error?: string;
@@ -21,6 +22,55 @@ type ActionState = {
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+function RoleSelect({ member, currentUserId, ownerId }: { member: any, currentUserId: string, ownerId: string | null }) {
+    const [state, action, isPending] = useActionState<ActionState, FormData>(updateTeamMemberRole, {});
+
+    useEffect(() => {
+        if (state.success) {
+            toast.success(state.success);
+        } else if (state.error) {
+            toast.error(state.error);
+        }
+    }, [state]);
+
+    const isOwner = member.userId === ownerId;
+    const isSelf = member.userId === currentUserId;
+    const canEdit = !isOwner && !isSelf;
+
+    if (!canEdit) {
+        return (
+            <p className="text-sm text-muted-foreground capitalize">
+                {member.role}
+            </p>
+        );
+    }
+
+    return (
+        <form action={action}>
+            <input type="hidden" name="memberId" value={member.id} />
+            <Select
+                name="role"
+                defaultValue={member.role}
+                disabled={isPending}
+                onValueChange={(value) => {
+                    const formData = new FormData();
+                    formData.append('memberId', member.id);
+                    formData.append('role', value);
+                    action(formData);
+                }}
+            >
+                <SelectTrigger className="h-8 w-[110px] text-xs">
+                    <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+            </Select>
+        </form>
+    );
+}
 
 function TeamMembersSkeleton() {
     return (
@@ -44,8 +94,17 @@ function TeamMembersSkeleton() {
 }
 
 function TeamMembers() {
-    const { data: teamData, isLoading } = useSWR<TeamDataWithMembers>('/api/team', fetcher);
+    const { user } = useAuth();
+    const { data: teamData, isLoading } = useSWR<TeamDataWithMembers & { ownerId: string | null }>('/api/team', fetcher);
     const [removeState, removeAction, isRemovePending] = useActionState<ActionState, FormData>(removeTeamMember, {});
+
+    useEffect(() => {
+        if (removeState.success) {
+            toast.success(removeState.success);
+        } else if (removeState.error) {
+            toast.error(removeState.error);
+        }
+    }, [removeState]);
 
     const getUserDisplayName = (user: Pick<User, 'id' | 'name' | 'email'>) => {
         return user.name || user.email || 'Unknown User';
@@ -90,13 +149,15 @@ function TeamMembers() {
                                     <p className="font-medium">
                                         {getUserDisplayName(member.user)}
                                     </p>
-                                    <p className="text-sm text-muted-foreground capitalize">
-                                        {member.role}
-                                    </p>
+                                    <RoleSelect
+                                        member={member}
+                                        currentUserId={user?.uid || ''}
+                                        ownerId={teamData.ownerId}
+                                    />
                                 </div>
                             </div>
-                            {/* Only allow removing members that are not owners */}
-                            {member.role !== 'owner' ? (
+                            {/* Only allow removing members that are not owners and not self and not from All Members team */}
+                            {member.userId !== teamData.ownerId && member.userId !== user?.uid && teamData.name.toLowerCase() !== 'all members' ? (
                                 <form action={removeAction}>
                                     <input type="hidden" name="memberId" value={member.id} />
                                     <Button
@@ -112,9 +173,6 @@ function TeamMembers() {
                         </li>
                     ))}
                 </ul>
-                {removeState?.error && (
-                    <p className="text-red-500 mt-4">{removeState.error}</p>
-                )}
             </CardContent>
         </Card>
     );

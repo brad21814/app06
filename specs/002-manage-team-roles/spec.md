@@ -1,115 +1,84 @@
-# Feature Specification: [FEATURE NAME]
+# Feature Specification: Manage Team Roles
 
-**Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
+**Feature Branch**: `002-manage-team-roles`  
+**Created**: March 25, 2026  
 **Status**: Draft  
-**Input**: User description: "$ARGUMENTS"
+**Input**: User description: "Allow Admins and Owners to change existing team member roles from the Team management page. They cannot be removed from the 'All Members' team. They can be removed from other teams. The owner cannot be changed."
 
 ## User Scenarios & Testing *(mandatory)*
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
+### User Story 1 - Role Update (Priority: P1)
 
-### User Story 1 - [Brief Title] (Priority: P1)
+As an Admin or Owner, I want to update the role of an existing team member from the Team management page so that I can delegate responsibilities or restrict access as needed.
 
-[Describe this user journey in plain language]
+**Why this priority**: Core functionality requested to manage user permissions within the organization.
 
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**Independent Test**: Can be tested by an Admin user selecting another team member and successfully changing their role from 'member' to 'admin' (or vice versa) and verifying the change persists in Firestore.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** I am logged in as an 'admin' or 'owner', **When** I visit the Team management page, **Then** I should see an option to change the role for other team members.
+2. **Given** I am changing a member's role, **When** I select a new role and save, **Then** the `TeamMember` record's `role` field is updated in Firestore.
 
 ---
 
-### User Story 2 - [Brief Title] (Priority: P2)
+### User Story 2 - Team Membership Management (Priority: P1)
 
-[Describe this user journey in plain language]
+As an Admin or Owner, I want to remove members from specific sub-teams while ensuring they remain part of the "All Members" group.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: Essential for maintaining organizational structure while preserving base account access for all users.
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Can be tested by attempting to remove a user from a custom team (should succeed) and attempting to remove them from the "All Members" team (should fail/be disabled).
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** a user is in multiple teams, **When** I attempt to remove them from a specific team that is NOT 'All Members', **Then** the removal should succeed.
+2. **Given** a user is in the 'All Members' team, **When** I attempt to remove them from 'All Members', **Then** the action should be blocked or the option should be unavailable.
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
+### User Story 3 - Owner Protection (Priority: P2)
 
-[Describe this user journey in plain language]
+As the system, I must ensure that the 'Owner' role remains unchanged to prevent accidental lockouts or security breaches.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: Critical for security and account stability.
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Can be tested by an Admin or the Owner attempting to change the Owner's role on the Team page and verifying the action is impossible.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** I am on the Team management page, **When** I view the account 'Owner', **Then** the role selection should be disabled and clearly marked as unchangeable.
 
 ---
-
-[Add more user stories as needed, each with an assigned priority]
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- **Self-Demotion**: Admins and Owners cannot change their own roles; another user with appropriate permissions (another Admin or Owner) must perform the action.
+- **Stripe Tier Limits**: Does changing a role affect user count limits? (Assumption: No, role changes do not impact the total seat count).
+- **Pending Invitations**: Can a role be changed for a user who hasn't accepted their invite yet? (Requirement: Update the `Invitation` record's `role` field).
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
-
-*Example of marking unclear requirements:*
-
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+- **FR-001**: System MUST provide a UI component on the Team management page for Admins/Owners to select a new role ('admin' or 'member') for team members.
+- **FR-002**: System MUST validate that the 'All Members' team (default team) membership cannot be revoked for any user.
+- **FR-003**: System MUST permit the removal of users from non-default teams.
+- **FR-004**: System MUST strictly prevent any modification to the role of the account 'Owner'.
+- **FR-005**: System MUST update the corresponding `TeamMember` and/or `Invitation` records in Firestore upon role modification.
+- **FR-006**: Role management actions MUST be restricted to users with 'admin' or 'owner' roles.
 
 ### Key Entities *(include if feature involves data)*
 
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
+- **TeamMember**: Represents a user's role and membership within a specific team.
+- **Invitation**: Represents a pending request for a user to join the organization with a specific role.
+- **Account**: Used to identify the 'Owner' of the organization.
 
 ## Success Criteria *(mandatory)*
 
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
 ### Measurable Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-001**: 100% of role updates by authorized users are persisted within 1 second.
+- **SC-002**: 0% of attempts to change the 'Owner' role succeed.
+- **SC-003**: 0% of users are successfully removed from the 'All Members' team through the management UI.
+- **SC-004**: Team management UI updates reflect the new roles immediately upon successful Firestore write.

@@ -8,11 +8,12 @@ import {
     getActivityLogsCollection,
     getUserDoc,
     getTeamDoc,
+    getAccountDoc,
     getConnectionsCollection,
     getAnalyticsCollection,
     getRelationshipsCollection
 } from './collections';
-import { User, Team, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants } from '@/types/firestore';
+import { User, Team, Account, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
     const sessionCookie = (await cookies()).get('session');
@@ -43,6 +44,11 @@ export async function getUser(): Promise<User | null> {
     }
 
     return null;
+}
+
+export async function getAccount(accountId: string): Promise<Account | null> {
+    const accountDoc = await getAccountDoc(accountId).get();
+    return accountDoc.exists ? accountDoc.data() || null : null;
 }
 
 export async function getTeamByStripeCustomerId(customerId: string): Promise<Team | null> {
@@ -130,6 +136,9 @@ export async function getTeamForUser() {
     const team = teamDoc.data();
     if (!team) return null;
 
+    // Fetch account to get ownerId
+    const account = await getAccount(team.accountId);
+
     // Fetch all team members
     const membersSnapshot = await getTeamMembersCollection()
         .where('teamId', '==', team.id)
@@ -149,6 +158,7 @@ export async function getTeamForUser() {
 
     return {
         ...team,
+        ownerId: account?.ownerId || null,
         teamMembers: teamMembersWithUsers
     };
 }

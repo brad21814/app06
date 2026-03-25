@@ -1,6 +1,6 @@
 ---
 name: git_commit_push
-description: specific instructions on how to use git to add, commit and push changes
+description: Use this skill after completing a task to safely stage, commit, and push all your work to the remote branch.
 ---
 
 # Git Commit and Push Skill
