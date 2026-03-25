@@ -224,6 +224,7 @@ async function seedDefaultUserAndTeam() {
         name: 'Seed Owner',
         email,
         role: 'owner',
+        accountId: 'account-1',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
     });

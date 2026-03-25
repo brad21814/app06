@@ -93,9 +93,8 @@ function TeamMembersSkeleton() {
     );
 }
 
-function TeamMembers() {
+function TeamMembers({ teamData }: { teamData: TeamDataWithMembers & { ownerId: string | null } | undefined }) {
     const { user } = useAuth();
-    const { data: teamData, isLoading } = useSWR<TeamDataWithMembers & { ownerId: string | null }>('/api/team', fetcher);
     const [removeState, removeAction, isRemovePending] = useActionState<ActionState, FormData>(removeTeamMember, {});
 
     useEffect(() => {
@@ -110,7 +109,7 @@ function TeamMembers() {
         return user.name || user.email || 'Unknown User';
     };
 
-    if (isLoading) {
+    if (!teamData) {
         return <TeamMembersSkeleton />;
     }
 
@@ -180,25 +179,26 @@ function TeamMembers() {
 
 export default function TeamPage() {
     const { user, userData } = useAuth();
+    const { data: teamData, isLoading: isTeamLoading } = useSWR<TeamDataWithMembers & { ownerId: string | null }>('/api/team', fetcher);
     const [invitations, setInvitations] = useState<Invitation[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let unsubscribe: () => void;
 
-        if (userData?.teamId) {
-            unsubscribe = subscribeToTeamInvitations(userData.teamId, (invites) => {
+        if (teamData?.id) {
+            unsubscribe = subscribeToTeamInvitations(teamData.id, (invites) => {
                 setInvitations(invites);
                 setLoading(false);
             });
-        } else {
+        } else if (!isTeamLoading) {
             setLoading(false);
         }
 
         return () => {
             if (unsubscribe) unsubscribe();
         };
-    }, [userData?.teamId]);
+    }, [teamData?.id, isTeamLoading]);
 
     const handleRevoke = async (inviteId: string) => {
         if (confirm('Are you sure you want to revoke this invitation?')) {
@@ -248,9 +248,9 @@ export default function TeamPage() {
                             Manage your team members and invitations.
                         </p>
                     </div>
-                    {userData?.teamId && userData?.accountId && user?.uid && (
+                    {teamData?.id && userData?.accountId && user?.uid && (
                         <InviteMemberDialog
-                            teamId={userData.teamId}
+                            teamId={teamData.id}
                             accountId={userData.accountId}
                             invitedBy={user.uid}
                         />
@@ -258,7 +258,7 @@ export default function TeamPage() {
                 </div>
 
                 <Suspense fallback={<TeamMembersSkeleton />}>
-                    <TeamMembers />
+                    <TeamMembers teamData={teamData} />
                 </Suspense>
 
                 <Card>
