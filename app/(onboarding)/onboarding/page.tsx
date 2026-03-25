@@ -120,11 +120,12 @@ function OnboardingContent() {
             // For now, let's update name and timezone as they are confirmed
             await updateUser(user.uid, { name, timezone });
 
-            if (invitation) {
-                // If invited, skip Step 2 (Account) and go to Step 3 (Privacy)
+            const isOwner = userData?.role?.toLowerCase() === 'owner';
+            if (invitation || !isOwner) {
+                // If invited or not an owner, skip Step 2 (Account) and go to Step 3 (Privacy)
                 setStep(3);
             } else {
-                // If not invited, proceed to Step 2: Account Setup (Admin flow)
+                // If not invited AND is an owner, proceed to Step 2: Account Setup (Admin flow)
                 setStep(2);
             }
         } catch (err: any) {

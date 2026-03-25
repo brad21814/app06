@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
         // 4. Send Email to Confirmer
         // Construct the link. Assuming valid BASE_URL in environment or derive from request.
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || new URL(req.url).origin;
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
         const link = `${baseUrl}/schedule/${connectionId}`;
 
         // We send email to the Confirmer, telling them Proposer has proposed times.

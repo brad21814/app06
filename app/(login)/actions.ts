@@ -295,7 +295,7 @@ export const inviteTeamMember = validatedActionWithUser(
     );
 
     // Send invitation email
-    const inviteLink = `${process.env.NEXT_PUBLIC_BASE_URL}/sign-up?inviteId=${newInviteRef.id}`;
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/sign-up?inviteId=${newInviteRef.id}`;
     await emailService.sendInviteEmail(email, user.name || user.email, inviteLink);
 
     return { success: 'Invitation sent successfully' };

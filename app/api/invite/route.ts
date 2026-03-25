@@ -19,8 +19,8 @@ export async function POST(request: Request) {
         if (accountDoc.exists) {
             const accountData = accountDoc.data() as Account;
             if (accountData.subscriptionStatus === 'trialing' && (accountData.userCount || 0) >= 9) {
-                return NextResponse.json({ 
-                    message: 'Trial user limit reached. Please upgrade your subscription to invite more members.', 
+                return NextResponse.json({
+                    message: 'Trial user limit reached. Please upgrade your subscription to invite more members.',
                     success: false,
                     limitReached: true
                 }, { status: 403 });
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         const docRef = await invitationsRef.add(newInvite as Invitation);
 
         // Construct invite link
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const inviteLink = `${baseUrl}/sign-up?inviteId=${docRef.id}`;
 
         // Send email

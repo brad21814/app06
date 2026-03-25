@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
         await getPasswordResetTokensCollection().doc(newTokenId).set(newToken);
 
-        const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${token}`;
+        const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
         await emailService.sendPasswordResetEmail(email, resetLink);
 
         return NextResponse.json({
