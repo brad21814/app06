@@ -12,6 +12,8 @@ import VideoFromTwilio, { Room, LocalTrack, RemoteTrack, LocalAudioTrack, LocalV
 import { getConnectionsCollection } from '@/lib/firestore/client/collections';
 import { updateDoc, doc, onSnapshot, Timestamp, arrayUnion } from 'firebase/firestore';
 import { QuestionEvent } from '@/types/firestore';
+import { videoBackgroundManager } from '@/lib/video/processor-manager';
+import { BackgroundSettings } from '@/components/video/background-settings';
 
 // Types
 interface Participant {
@@ -56,6 +58,7 @@ export default function ConnectionPage() {
     const [isJoining, setIsJoining] = useState(false);
     const [room, setRoom] = useState<Room | null>(null);
     const [participants, setParticipants] = useState<any[]>([]);
+    const [isSupported, setIsSupported] = useState(true);
 
     // Questions & Timer State
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -67,10 +70,40 @@ export default function ConnectionPage() {
     const [localAudioTrack, setLocalAudioTrack] = useState<LocalAudioTrack | null>(null);
     const [isAudioEnabled, setIsAudioEnabled] = useState(false);
     const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+    const [activeBackground, setActiveBackground] = useState<string>('blur');
+    const [isChangingBackground, setIsChangingBackground] = useState(false);
+
+    const handleBackgroundChange = async (optionId: string) => {
+        if (!localVideoTrack) {
+            setActiveBackground(optionId);
+            return;
+        }
+
+        setIsChangingBackground(true);
+        try {
+            await videoBackgroundManager.applyEffect(localVideoTrack, optionId);
+            setActiveBackground(optionId);
+        } catch (err: any) {
+            console.error('Failed to change background:', err);
+            toast.error('Background update failed', { description: err.message });
+        } finally {
+            setIsChangingBackground(false);
+        }
+    };
 
     // Fetch Connection Data
     // Firestore Real-time Listener (for Started Status)
     useEffect(() => {
+        // Check processor compatibility
+        videoBackgroundManager.checkCompatibility().then(supported => {
+            setIsSupported(supported);
+            if (!supported) {
+                toast.info('Video Effects Unsupported', { 
+                    description: 'Your browser or hardware does not support virtual backgrounds.' 
+                });
+            }
+        });
+
         if (!connectionId) return;
 
         // Initial Fetch for heavy data (participants, theme details)
@@ -157,6 +190,7 @@ export default function ConnectionPage() {
         if (isVideoEnabled) {
             // Disable
             if (localVideoTrack) {
+                videoBackgroundManager.clearEffects(localVideoTrack);
                 localVideoTrack.stop();
                 room.localParticipant.unpublishTrack(localVideoTrack);
                 setLocalVideoTrack(null);
@@ -166,6 +200,15 @@ export default function ConnectionPage() {
             // Enable
             try {
                 const track = await VideoFromTwilio.createLocalVideoTrack({ width: 640 });
+                
+                // Apply default blur if supported
+                try {
+                    await videoBackgroundManager.applyEffect(track, activeBackground);
+                } catch (err) {
+                    console.error('Failed to apply background effect:', err);
+                    toast.error('Background effect failed', { description: 'Your video will continue without the effect.' });
+                }
+
                 await room.localParticipant.publishTrack(track);
                 setLocalVideoTrack(track);
                 setIsVideoEnabled(true);
@@ -455,6 +498,12 @@ export default function ConnectionPage() {
                         >
                             {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
                         </Button>
+                        <BackgroundSettings
+                            activeId={activeBackground}
+                            onSelect={handleBackgroundChange}
+                            isChanging={isChangingBackground}
+                            disabled={!room || !isSupported}
+                        />
                     </div>
 
                     {!room ? (

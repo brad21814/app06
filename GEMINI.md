@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-01
 - Firestore (Collections: `connections`, `users`, `themes`) (001-connection-summary-reconnect)
 - TypeScript (Next.js 15+ App Router) + React, Tailwind CSS, Lucide React, Firebase (Firestore, Auth), `useActionState` for server actions. (002-manage-team-roles)
 - Firestore (Collections: `users`, `teams`, `team_members`, `invitations`, `accounts`). (002-manage-team-roles)
+- TypeScript (Next.js 15+ App Router) + `twilio-video`, `@twilio/video-processors`, `lucide-react`, `sonner` (for notifications) (001-video-call-backgrounds)
+- N/A (Static image assets in `public/assets/backgrounds/`) (001-video-call-backgrounds)
 
 - TypeScript (Next.js) + Next.js App Router, Firebase (Firestore, Auth), Tailwind CSS (001-privacy-management-tiers)
 
@@ -29,11 +31,10 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 TypeScript (Next.js): Follow standard conventions
 
 ## Recent Changes
+- 001-video-call-backgrounds: Added TypeScript (Next.js 15+ App Router) + `twilio-video`, `@twilio/video-processors`, `lucide-react`, `sonner` (for notifications)
 - 002-manage-team-roles: Added TypeScript (Next.js 15+ App Router) + React, Tailwind CSS, Lucide React, Firebase (Firestore, Auth), `useActionState` for server actions.
 - 001-connection-summary-reconnect: Added TypeScript (Next.js 15+ App Router) + React, Tailwind CSS, Firebase (Firestore), Lucide React (Icons), Twilio Video (for room management)
-- 001-stripe-subscription-management: Added TypeScript (Next.js 15+ App Router) + `stripe`, `firebase-admin`, `firebase`
 
-- 001-privacy-management-tiers: Added TypeScript (Next.js) + Next.js App Router, Firebase (Firestore, Auth), Tailwind CSS
 
 
 <!-- MANUAL ADDITIONS START -->
