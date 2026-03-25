@@ -171,6 +171,7 @@ export interface Connection {
     summary?: string | null;
     sentiment?: number | null;
     startedAt?: Timestamp | null;
+    endedAt?: Timestamp | null;
     analysis?: ConnectionAnalysis | null;
     questions?: string[] | null; // Selected/Randomized questions for this session
     questionEvents?: QuestionEvent[] | null; // Log of when questions were asked

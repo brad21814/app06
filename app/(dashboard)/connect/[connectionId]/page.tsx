@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock, Loader2 } from 'lucide-react';
+import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock, Loader2, Check, X } from 'lucide-react';
 import VideoFromTwilio, { Room, LocalTrack, RemoteTrack, LocalAudioTrack, LocalVideoTrack, RemoteAudioTrack, RemoteVideoTrack } from 'twilio-video';
 import { getConnectionsCollection } from '@/lib/firestore/client/collections';
 import { updateDoc, doc, onSnapshot, Timestamp, arrayUnion } from 'firebase/firestore';
@@ -254,6 +254,37 @@ export default function ConnectionPage() {
     const [isClosing, setIsClosing] = useState(false);
     const [closingTimeLeft, setClosingTimeLeft] = useState(30);
     const [isSessionEnded, setIsSessionEnded] = useState(false);
+    const [isReconnecting, setIsReconnecting] = useState(false);
+
+    const handleReconnect = async () => {
+        if (!connectionId) return;
+        setIsReconnecting(true);
+
+        try {
+            const res = await fetch(`/api/connections/${connectionId}/reconnect`, {
+                method: 'POST'
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Failed to reconnect');
+            }
+
+            toast.success('Session reset', { description: 'You can now restart the session' });
+
+            // Reset local UI states to initial
+            setIsSessionEnded(false);
+            setIsClosing(false);
+            setCurrentQuestionIndex(0);
+            setClosingTimeLeft(30);
+
+        } catch (error: any) {
+            console.error('Reconnect error:', error);
+            toast.error('Reconnect Failed', { description: error.message });
+        } finally {
+            setIsReconnecting(false);
+        }
+    };
 
     // Timer Logic
     useEffect(() => {
@@ -593,19 +624,92 @@ export default function ConnectionPage() {
                                                 )}
                                             </div>
                                         ) : isSessionEnded ? (
-                                            <div className="flex flex-col items-center justify-center py-8 gap-4">
-                                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                                                    <Users className="w-8 h-8 text-blue-600" />
+                                            <div className="flex flex-col items-center justify-center py-4 gap-6 w-full max-w-2xl mx-auto">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-2">
+                                                        <Users className="w-8 h-8 text-green-600" />
+                                                    </div>
+                                                    <h3 className="text-2xl font-semibold">Connection Summary</h3>
+                                                    <p className="text-gray-500">Session successfully completed</p>
                                                 </div>
-                                                <h3 className="text-xl font-semibold">Session Ended</h3>
-                                                <p className="text-center text-gray-500 max-w-sm">
-                                                    The connection has wrapped up. You can now return to your dashboard or review the conversation.
-                                                </p>
-                                                <Button
-                                                    onClick={() => router.push('/dashboard')}
-                                                >
-                                                    Return to Dashboard
-                                                </Button>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                                                    <Card className="bg-gray-50 border-0 shadow-none">
+                                                        <CardContent className="p-4">
+                                                            <h4 className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Session Info</h4>
+                                                            <div className="space-y-1">
+                                                                <p className="text-xs">
+                                                                    <span className="font-semibold text-gray-700">Started:</span> {connection?.startedAt ? (connection.startedAt.seconds ? new Date(connection.startedAt.seconds * 1000).toLocaleString() : new Date(connection.startedAt).toLocaleString()) : 'N/A'}
+                                                                </p>
+                                                                <p className="text-xs">
+                                                                    <span className="font-semibold text-gray-700">Participants:</span> {connection?.participants.map(p => p.name).join(', ')}
+                                                                </p>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                    <Card className="bg-gray-50 border-0 shadow-none">
+                                                        <CardContent className="p-4">
+                                                            <h4 className="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Theme</h4>
+                                                            <p className="text-sm font-semibold text-gray-800">{connection?.theme?.name}</p>
+                                                            <p className="text-xs text-gray-500">{connection?.theme?.questions.length} Questions Total</p>
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+
+                                                <div className="w-full">
+                                                    <h4 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-700">
+                                                        <MessageSquare className="w-4 h-4" /> Question Progress
+                                                    </h4>
+                                                    <div className="space-y-2">
+                                                        {connection?.theme?.questions.map((q, idx) => {
+                                                            const completed = connection?.questionEvents?.some(e => e.question === q);
+                                                            return (
+                                                                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-white border shadow-sm">
+                                                                    <div className={`mt-0.5 rounded-full p-1 flex-shrink-0 ${completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                                                        {completed ? (
+                                                                            <Check className="w-3.5 h-3.5" />
+                                                                        ) : (
+                                                                            <X className="w-3.5 h-3.5" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <p className={`text-sm ${completed ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>{q}</p>
+                                                                        <div className="flex items-center mt-1">
+                                                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tight ${completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                                                {completed ? 'Completed' : 'Skipped'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+                                                    <Button
+                                                        variant="default"
+                                                        className="flex-1"
+                                                        onClick={handleReconnect}
+                                                        disabled={isReconnecting}
+                                                    >
+                                                        {isReconnecting ? (
+                                                            <>
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                Resetting...
+                                                            </>
+                                                        ) : (
+                                                            'Reconnect'
+                                                        )}
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="flex-1"
+                                                        onClick={() => router.push('/dashboard')}
+                                                    >
+                                                        Return to Dashboard
+                                                    </Button>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-center justify-center py-8 gap-4">

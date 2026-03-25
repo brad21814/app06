@@ -12,15 +12,17 @@
 
 - [x] TASK011: Add csv import option when adding Team Members. Team names should match case insisitive , otherwise they will be created. CSV format would be <name>,<email>,<role>,<list of teams as Team|Team|Team (excluding All Members as that is added by default)>.  The role should be 'member' or 'admin'.
 
-- [ ] TASK008: Modify the connections page once a connection is completed it should show a summary of the questions and answers. e.g. when did it happen, what questions were asked, who were the participants and a summary of the responses per question. Maybe keep a Reconnect button that would start the session again and overwrite any assets recorded from the old session.
+- [x] TASK013: stripe integration with trial period and tiered subscription based on user count. (prevent adding more users if user limit is reacehd)
 
-- [ ] TASK012: Allow changing existing team member roles from the Team management page. They cannot be removed from the 'All Members' team.  They can be removed from other teams.  The owner cannot be changed.
+- [x] TASK008: Modify the connections page once a connection is completed it should show a summary of the questions and answers. e.g. when did it happen, what questions were asked, who were the participants and a summary of the responses per question. Maybe keep a Reconnect button that would start the session again and overwrite any assets recorded from the old session.
 
-- [ ] TASK013: stripe integration with trial period and tiered subscription based on user count. (prevent adding more users if user limit is reacehd)
+- [ ] TASK012: Allow Admins and Owners to change existing team member roles from the Team management page. They cannot be removed from the 'All Members' team.  They can be removed from other teams.  The owner cannot be changed.
 
-- [ ] TASK014: Allow users to use custom backgrounds in video calls.
+- [ ] TASK014: Allow users to use custom backgrounds in video calls.  Firstly review the Twilio documentation for applying video backgrounds here https://www.twilio.com/docs/video/video-processors  Then make a plan to 1. Default to a blured background for all users. 2. Allow users to select a background image from a list of pre-defined background images, perhaps generate some fun samples that along with teram pulp
 
-- [ ] TASK015: Drill into an individual user to gague sentiment and health
+- [ ] TASK015: Allow admins and owners to view a list of all users in the account and drill into an individual user to gague sentiment and health.
+
+
 
 ## Go Live Tasks
 - [ ] TASK015.5: Update the domain name to be app06.komandra.com

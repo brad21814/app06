@@ -56,4 +56,7 @@ Constitution supersedes all other practices; Amendments require documentation, a
 
 All development work must verify compliance with these guidelines. Use these rules to maintain a premium, scalable codebase.
 
+***important**:
+- ensure you always increment the spec number when creating a new spec
+
 **Version**: 1.1.0 | **Ratified**: 2026-02-23 | **Last Amended**: 2026-02-23
