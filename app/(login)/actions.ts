@@ -10,6 +10,7 @@ import {
   getPasswordResetTokensCollection,
   getUserDoc,
   getTeamDoc,
+  getAccountDoc,
   getInvitationsCollection as getInvitesCol, // Alias to avoid conflict if needed
 } from '@/lib/firestore/admin/collections';
 import {
@@ -174,8 +175,34 @@ export const removeTeamMember = validatedActionWithUser(
 
     // Verify member belongs to team
     const memberDoc = await getTeamMembersCollection().doc(memberId).get();
-    if (!memberDoc.exists || memberDoc.data()?.teamId !== userWithTeam.teamId) {
+    const memberData = memberDoc.data();
+    if (!memberDoc.exists || memberData?.teamId !== userWithTeam.teamId) {
       return { error: 'Member not found or not in your team' };
+    }
+
+    const targetUserId = memberData?.userId;
+
+    // 1. Protection: Cannot remove self
+    if (targetUserId === user.id) {
+      return { error: 'You cannot remove yourself from the team' };
+    }
+
+    // 2. Protection: Cannot remove Owner
+    const teamDoc = await getTeamDoc(userWithTeam.teamId).get();
+    const teamData = teamDoc.data();
+    if (!teamData) {
+      return { error: 'Team data not found' };
+    }
+
+    const accountDoc = await getAccountDoc(teamData.accountId).get();
+    const accountData = accountDoc.data();
+    if (accountData?.ownerId === targetUserId) {
+      return { error: 'The account owner cannot be removed from the team' };
+    }
+
+    // 3. Constraint: Cannot remove from 'All Members' team
+    if (teamData.name.toLowerCase() === 'all members') {
+      return { error: 'Users cannot be removed from the All Members team' };
     }
 
     await getTeamMembersCollection().doc(memberId).delete();
@@ -272,5 +299,93 @@ export const inviteTeamMember = validatedActionWithUser(
     await emailService.sendInviteEmail(email, user.name || user.email, inviteLink);
 
     return { success: 'Invitation sent successfully' };
+  }
+);
+
+const updateTeamMemberRoleSchema = z.object({
+  memberId: z.string(),
+  role: z.enum(['member', 'admin'])
+});
+
+export const updateTeamMemberRole = validatedActionWithUser(
+  updateTeamMemberRoleSchema,
+  async (data, _, user) => {
+    const { memberId, role } = data;
+    const userWithTeam = await getUserWithTeam(user.id);
+
+    if (!userWithTeam?.teamId) {
+      return { error: 'User is not part of a team' };
+    }
+
+    // Fetch the target member
+    const memberDoc = await getTeamMembersCollection().doc(memberId).get();
+    if (!memberDoc.exists || memberDoc.data()?.teamId !== userWithTeam.teamId) {
+      return { error: 'Member not found or not in your team' };
+    }
+
+    const memberData = memberDoc.data();
+    const targetUserId = memberData?.userId;
+
+    if (!targetUserId) {
+      return { error: 'Invalid member data' };
+    }
+
+    // Protection checks (Story 3 tasks T013, T014, T015 will enhance this, but starting basic)
+    // 1. Cannot demote self (Story 3 requirement)
+    if (targetUserId === user.id) {
+      return { error: 'You cannot change your own role' };
+    }
+
+    // 2. Fetch account to check ownerId
+    const teamDoc = await getTeamDoc(userWithTeam.teamId).get();
+    const teamData = teamDoc.data();
+    if (!teamData) {
+      return { error: 'Team data not found' };
+    }
+
+    const accountDoc = await getAccountDoc(teamData.accountId).get();
+    const accountData = accountDoc.data();
+    if (accountData?.ownerId === targetUserId) {
+      return { error: 'The account owner role cannot be changed' };
+    }
+
+    // Perform updates
+    const batch = adminDb.batch();
+
+    // Update TeamMember role
+    batch.update(getTeamMembersCollection().doc(memberId), { role });
+
+    // Update User role (account-wide)
+    batch.update(getUserDoc(targetUserId), { role });
+
+    // Update any pending invitations for this user in this account
+    const userSnap = await getUserDoc(targetUserId).get();
+    const userData = userSnap.data();
+    if (userData?.email) {
+      const inviteSnap = await getInvitationsCollection()
+        .where('email', '==', userData.email)
+        .where('accountId', '==', teamData.accountId)
+        .where('status', '==', 'pending')
+        .get();
+
+      inviteSnap.docs.forEach(doc => {
+        batch.update(doc.ref, { role });
+      });
+    }
+
+    // Log activity
+    const activityRef = getActivityLogsCollection().doc();
+    const newActivity: Omit<ActivityLog, 'id'> = {
+      teamId: userWithTeam.teamId,
+      userId: user.id,
+      action: ActivityType.UPDATE_TEAM_MEMBER_ROLE,
+      timestamp: Timestamp.now() as any,
+      ipAddress: '' // Simplified for now
+    };
+    batch.set(activityRef, newActivity);
+
+    await batch.commit();
+
+    return { success: 'Team member role updated successfully' };
   }
 );
