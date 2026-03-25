@@ -35,8 +35,9 @@ export function OnboardingChecklist() {
                 ];
 
                 // Hide team/invite tasks for regular members
-                if (userData.role === 'member') {
-                    items = items.filter(item => item.role?.includes(userData.role));
+                const userRole = userData.role?.toLowerCase();
+                if (userRole === 'member') {
+                    items = items.filter(item => item.role?.includes(userRole));
                 }
 
                 setChecklist(items);
