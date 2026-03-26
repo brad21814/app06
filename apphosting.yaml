@@ -51,6 +51,7 @@ env:
     availability:
       - BUILD
       - RUNTIME
+      
   - variable: NEXT_PUBLIC_FUNCTIONS_URL
     value: https://us-central1-komandra-app06.cloudfunctions.net
     availability:
@@ -73,6 +74,11 @@ env:
       - RUNTIME
   - variable: STRIPE_PRICE_ID_CULTURE
     value: price_1T6bx4G06ui0blDzZX8zI7Dr
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_GOOGLE_RECAPTCHA_V3_SITE_KEY
+    value: 6Lc5sZgsAAAAAKyZqFeDRImT5TZnt68CV7jMbWfC
     availability:
       - BUILD
       - RUNTIME
@@ -100,3 +106,5 @@ env:
     secret: secretStripeSecretKey
   - variable: STRIPE_WEBHOOK_SECRET
     secret: secretStripeWebhookSecret
+  - variable: GOOGLE_RECAPTCHA_V3_SECRET_KEY
+    secret: secretGoogleRecaptchaV3SecretKey
