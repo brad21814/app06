@@ -342,6 +342,22 @@ If you only want to update specific parts:
 
 ### Important Links
 
+
+
+Manage Recaptcha
+
+https://console.cloud.google.com/security/recaptcha?_ga=2.223041883.-1993709794.1717766447&project=komandra-app06
+
+
+Stripe Console
+
+Twilio Console
+
+Postmark Console
+
+Firebase Console
+
+
 #### DEV
 
 ##### Logs
