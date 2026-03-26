@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 function ResetPasswordContent() {
     const router = useRouter();
@@ -19,6 +20,8 @@ function ResetPasswordContent() {
     const [isPending, setIsPending] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     if (!token) {
         return (
@@ -40,34 +43,41 @@ function ResetPasswordContent() {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('token', token);
-        formData.append('password', password);
-        formData.append('confirmPassword', confirmPassword);
+        try {
+            if (!executeRecaptcha) {
+                throw new Error('reCAPTCHA not initialized.');
+            }
 
-        const response = await fetch('/api/auth/reset-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                token,
-                password: formData.get('password'),
-                confirmPassword: formData.get('confirmPassword'),
-            }),
-        });
+            const recaptchaToken = await executeRecaptcha('reset_password');
 
-        const data = await response.json();
+            const response = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token,
+                    password,
+                    confirmPassword,
+                    recaptchaToken
+                }),
+            });
 
-        if (response.ok) {
-            setMessage(data.success || 'Password reset successfully!');
-            toast.success('Password reset successfully');
-            setTimeout(() => {
-                router.push('/sign-in');
-            }, 3000);
-        } else {
-            setError(data.error || 'An error occurred');
+            const data = await response.json();
+
+            if (response.ok) {
+                setMessage(data.success || 'Password reset successfully!');
+                toast.success('Password reset successfully');
+                setTimeout(() => {
+                    router.push('/sign-in');
+                }, 3000);
+            } else {
+                setError(data.error || 'An error occurred');
+            }
+        } catch (err: any) {
+            console.error('Reset password error:', err);
+            setError(err.message || 'An error occurred. Please try again.');
+        } finally {
+            setIsPending(false);
         }
-
-        setIsPending(false);
     };
 
     return (
@@ -129,6 +139,12 @@ function ResetPasswordContent() {
                         'Reset Password'
                     )}
                 </Button>
+            </div>
+
+            <div className="mt-4 text-center text-xs text-gray-500">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and{' '}
+                <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
             </div>
         </form>
     );

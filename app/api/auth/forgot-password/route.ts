@@ -5,9 +5,11 @@ import { emailService } from '@/lib/email';
 import { randomBytes } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { PasswordResetToken } from '@/types/firestore';
+import { verifyRecaptcha } from '@/lib/auth/recaptcha';
 
 const forgotPasswordSchema = z.object({
     email: z.string().email(),
+    recaptchaToken: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -23,7 +25,16 @@ export async function POST(request: Request) {
             );
         }
 
-        const { email } = result.data;
+        const { email, recaptchaToken } = result.data;
+
+        // Verify reCAPTCHA
+        const recaptcha = await verifyRecaptcha(recaptchaToken, 'forgot_password');
+        if (!recaptcha.success) {
+            return NextResponse.json(
+                { error: recaptcha.error || 'reCAPTCHA verification failed.' },
+                { status: 403 }
+            );
+        }
 
         const userSnapshot = await getUsersCollection()
             .where('email', '==', email)

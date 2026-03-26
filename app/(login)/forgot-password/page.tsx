@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState('');
@@ -14,30 +15,43 @@ export default function ForgotPasswordPage() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsPending(true);
         setMessage('');
         setError('');
 
-        const formData = new FormData();
-        formData.append('email', email);
+        try {
+            if (!executeRecaptcha) {
+                throw new Error('reCAPTCHA not initialized.');
+            }
 
-        const response = await fetch('/api/auth/forgot-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: formData.get('email') }),
-        });
+            const recaptchaToken = await executeRecaptcha('forgot_password');
 
-        const data = await response.json();
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email,
+                    recaptchaToken
+                }),
+            });
 
-        if (response.ok) {
-            setMessage(data.success);
-        } else {
-            setError(data.error || 'An error occurred');
+            const data = await response.json();
+
+            if (response.ok) {
+                setMessage(data.success);
+            } else {
+                setError(data.error || 'An error occurred');
+            }
+        } catch (err: any) {
+            console.error('Forgot password error:', err);
+            setError(err.message || 'An error occurred. Please try again.');
+        } finally {
+            setIsPending(false);
         }
-
-        setIsPending(false);
     };
 
     return (
@@ -91,6 +105,12 @@ export default function ForgotPasswordPage() {
                                     'Send Reset Link'
                                 )}
                             </Button>
+                        </div>
+
+                        <div className="mt-4 text-center text-xs text-gray-500">
+                            This site is protected by reCAPTCHA and the Google{' '}
+                            <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and{' '}
+                            <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
                         </div>
                     </form>
 

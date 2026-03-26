@@ -14,12 +14,14 @@ import { setSession } from '@/lib/auth/session';
 import { ActivityType, User, Team, TeamMember } from '@/types/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 import { adminAuth } from '@/lib/firebase/server';
+import { verifyRecaptcha } from '@/lib/auth/recaptcha';
 
 const signUpSchema = z.object({
     idToken: z.string(),
     inviteId: z.string().optional(),
     redirect: z.string().optional(),
     priceId: z.string().optional(),
+    recaptchaToken: z.string().optional(),
 });
 
 async function logActivity(
@@ -53,7 +55,16 @@ export async function POST(request: Request) {
             );
         }
 
-        const { idToken, inviteId, redirect, priceId } = result.data;
+        const { idToken, inviteId, redirect, priceId, recaptchaToken } = result.data;
+
+        // Verify reCAPTCHA
+        const recaptcha = await verifyRecaptcha(recaptchaToken, 'signup');
+        if (!recaptcha.success) {
+            return NextResponse.json(
+                { error: recaptcha.error || 'reCAPTCHA verification failed.' },
+                { status: 403 }
+            );
+        }
 
         // Verify ID Token
         const decodedToken = await adminAuth.verifyIdToken(idToken);

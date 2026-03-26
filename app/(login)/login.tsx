@@ -17,6 +17,7 @@ import {
 import { auth } from '@/lib/firebase/config';
 import { createUser, getUser, getInvitation } from '@/lib/firebase/firestore';
 import { useEffect } from 'react';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const router = useRouter();
@@ -24,6 +25,8 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
   const redirect = searchParams.get('redirect') || '/dashboard';
   const priceId = searchParams.get('priceId');
   const inviteId = searchParams.get('inviteId');
+
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,6 +63,12 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     }
 
     try {
+      if (!executeRecaptcha) {
+        throw new Error('reCAPTCHA not initialized.');
+      }
+
+      const recaptchaToken = await executeRecaptcha(mode === 'signin' ? 'login' : 'signup');
+
       let userCredential;
       if (mode === 'signin') {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -75,6 +84,7 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         redirect,
         priceId: priceId || undefined,
         inviteId: mode === 'signup' ? (inviteId || undefined) : undefined,
+        recaptchaToken,
       };
 
       const response = await fetch(endpoint, {
@@ -246,6 +256,12 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
                   'Sign up'
                 )}
               </Button>
+            </div>
+
+            <div className="mt-4 text-center text-xs text-gray-500">
+              This site is protected by reCAPTCHA and the Google{' '}
+              <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and{' '}
+              <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
             </div>
           </form>
 

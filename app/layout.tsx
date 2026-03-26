@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import { AuthProvider } from '@/lib/firebase/auth-context';
 import { Toaster } from 'sonner';
+import { RecaptchaProvider } from '@/components/auth/RecaptchaProvider';
 
 export const metadata: Metadata = {
   title: 'Next.js SaaS Starter',
@@ -26,10 +27,12 @@ export default function RootLayout({
       className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
     >
       <body className="min-h-[100dvh] bg-gray-50">
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <RecaptchaProvider>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </RecaptchaProvider>
       </body>
     </html>
   );

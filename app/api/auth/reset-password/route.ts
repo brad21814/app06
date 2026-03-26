@@ -6,11 +6,13 @@ import {
 } from '@/lib/firestore/admin/collections';
 import { adminAuth } from '@/lib/firebase/server';
 import { Timestamp } from 'firebase-admin/firestore';
+import { verifyRecaptcha } from '@/lib/auth/recaptcha';
 
 const resetPasswordSchema = z.object({
     token: z.string().min(1),
     password: z.string().min(8),
     confirmPassword: z.string().min(8),
+    recaptchaToken: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -26,7 +28,16 @@ export async function POST(request: Request) {
             );
         }
 
-        const { token, password, confirmPassword } = result.data;
+        const { token, password, confirmPassword, recaptchaToken } = result.data;
+
+        // Verify reCAPTCHA
+        const recaptcha = await verifyRecaptcha(recaptchaToken, 'reset_password');
+        if (!recaptcha.success) {
+            return NextResponse.json(
+                { error: recaptcha.error || 'reCAPTCHA verification failed.' },
+                { status: 403 }
+            );
+        }
 
         if (password !== confirmPassword) {
             return NextResponse.json(
