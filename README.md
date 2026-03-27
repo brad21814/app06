@@ -357,6 +357,17 @@ Postmark Console
 
 Firebase Console
 
+Secret Manager 
+https://console.cloud.google.com/security/secret-manager?project=komandra-app06
+
+
+Adding a key 
+echo -n 'xxxxxxxxxx' | firebase apphosting:secrets:set secretGoogleRecaptchaV3SecretKey --data-file - -f
+
+
+Applying permissions
+firebase apphosting:secrets:grantaccess secretGoogleRecaptchaV3SecretKey --backend app06 --project komandra-app06 
+
 
 #### DEV
 

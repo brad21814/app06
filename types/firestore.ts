@@ -39,6 +39,7 @@ export interface Account {
     subscriptionTier?: 'launchpad' | 'growth' | 'culture' | null;
     trialEndsAt?: Timestamp | null;
     currentPeriodEnd?: Timestamp | null;
+    hasReviewedThemes?: boolean;
 }
 
 export interface SubscriptionLog {

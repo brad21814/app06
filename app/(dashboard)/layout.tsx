@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { MissingTierNotification } from '@/components/dashboard/missing-tier-notification';
 import { NotificationCenter } from '@/components/dashboard/notification-center';
 import { TrialBanner } from '@/components/dashboard/trial-banner';
+import { OnboardingChecklist } from '@/components/dashboard/checklist';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -73,6 +74,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <main className="flex-1 overflow-y-auto p-4 max-w-5xl w-full">
               <NotificationCenter />
               <MissingTierNotification />
+              <OnboardingChecklist />
               {children}
             </main>
           </div>

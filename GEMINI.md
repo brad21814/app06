@@ -33,9 +33,9 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 TypeScript (Next.js): Follow standard conventions
 
 ## Recent Changes
+- 004-improve-getting-started-cta: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 003-recaptcha-v3: Added TypeScript / Next.js 16 (App Router) + `react-google-recaptcha-v3`, `firebase-admin`, `zod`
 - 001-video-call-backgrounds: Added TypeScript (Next.js 15+ App Router) + `twilio-video`, `@twilio/video-processors`, `lucide-react`, `sonner` (for notifications)
-- 002-manage-team-roles: Added TypeScript (Next.js 15+ App Router) + React, Tailwind CSS, Lucide React, Firebase (Firestore, Auth), `useActionState` for server actions.
 
 
 

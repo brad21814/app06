@@ -4,7 +4,6 @@ import { getUser, getTeamForUser, getUserConnections, getTeamConnections, getAna
 import { AnalyticsSnapshot, Relationship, TeamMember, ConnectionWithParticipants } from '@/types/firestore';
 import { Connections } from '@/components/dashboard/connections';
 import { AnalyticsSummary } from '@/components/analytics/analytics-summary';
-import { OnboardingChecklist } from '@/components/dashboard/checklist';
 import { ConnectionsGraph } from '@/components/dashboard/connections-graph';
 import { serializeFirestoreData } from '@/lib/utils';
 
@@ -35,8 +34,6 @@ async function DashboardContent() {
 
   return (
     <div className="space-y-8">
-      <OnboardingChecklist />
-
       {isOwnerOrAdmin && (
         <section>
           <h2 className="text-2xl font-bold tracking-tight mb-4">Team Analytics</h2>

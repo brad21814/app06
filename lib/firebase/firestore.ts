@@ -36,6 +36,7 @@ export interface Account {
     name: string;
     ownerId: string;
     createdAt: Timestamp;
+    hasReviewedThemes?: boolean;
 }
 
 export interface Team {
@@ -97,8 +98,23 @@ export const createAccount = async (name: string, ownerId: string) => {
         subscriptionStatus: 'trialing',
         subscriptionTier: 'launchpad',
         trialEndsAt: Timestamp.fromDate(trialEndsAt),
+        hasReviewedThemes: false,
     });
     return { id: accRef.id, name, ownerId };
+};
+
+export const getAccount = async (accountId: string): Promise<Account | null> => {
+    const accRef = doc(db, 'accounts', accountId);
+    const accSnap = await getDoc(accRef);
+    if (accSnap.exists()) {
+        return { id: accSnap.id, ...accSnap.data() } as Account;
+    }
+    return null;
+};
+
+export const updateAccount = async (accountId: string, data: Partial<Account>) => {
+    const accRef = doc(db, 'accounts', accountId);
+    await updateDoc(accRef, data);
 };
 
 // Team Operations
@@ -197,4 +213,15 @@ export const subscribeToTeamInvitations = (teamId: string, callback: (invitation
 export const revokeInvitation = async (inviteId: string) => {
     const inviteRef = doc(db, 'invitations', inviteId);
     await updateDoc(inviteRef, { status: 'revoked' });
+};
+
+// Schedule Operations
+export const getAccountActiveSchedules = async (accountId: string) => {
+    const q = query(
+        collection(db, 'schedules'),
+        where('accountId', '==', accountId),
+        where('status', '==', 'active')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };

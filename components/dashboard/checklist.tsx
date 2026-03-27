@@ -6,41 +6,64 @@ import { CheckCircle, Circle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/lib/firebase/auth-context';
-import { updateUser, getAccountInvitations } from '@/lib/firebase/firestore';
+import { updateUser, getAccountInvitations, getAccount, getAccountActiveSchedules } from '@/lib/firebase/firestore';
 
 export function OnboardingChecklist() {
     const router = useRouter();
     const { user, userData } = useAuth();
-    const [checklist, setChecklist] = useState<{ id: string; label: string; completed: boolean; action: string; role?: string }[]>([]);
+    const [checklist, setChecklist] = useState<{ id: string; label: string; completed: boolean; action: string }[]>([]);
     const [isHidden, setIsHidden] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchChecklistData = async () => {
             if (userData) {
-                // Check for dismissed state
-                if (userData.hasDismissedGettingStarted) {
+                // Only show for admin and owner
+                const userRole = userData.role?.toLowerCase();
+                if (userRole !== 'admin' && userRole !== 'owner') {
                     setIsHidden(true);
+                    setIsLoading(false);
                     return;
                 }
 
-                // Check for existing invitations
-                let hasInvitations = false;
-                if (userData.accountId) {
+                // Check for dismissed state
+                if (userData.hasDismissedGettingStarted) {
+                    setIsHidden(true);
+                    setIsLoading(false);
+                    return;
+                }
+
+                if (!userData.accountId) {
+                    setIsHidden(true);
+                    setIsLoading(false);
+                    return;
+                }
+
+                try {
+                    // Check for existing invitations
                     const invites = await getAccountInvitations(userData.accountId);
-                    hasInvitations = invites.length > 0;
+                    const hasInvitations = invites.length > 0;
+
+                    // Check for reviewed themes
+                    const account = await getAccount(userData.accountId);
+                    const hasReviewedThemes = !!account?.hasReviewedThemes;
+
+                    // Check for active schedules
+                    const activeSchedules = await getAccountActiveSchedules(userData.accountId);
+                    const hasActiveSchedule = activeSchedules.length > 0;
+
+                    const items = [
+                        { id: 'invite', label: 'Invite Members', completed: hasInvitations, action: '/teams' },
+                        { id: 'themes', label: 'Review connection themes', completed: hasReviewedThemes, action: '/themes' },
+                        { id: 'schedule', label: 'Launch a connection schedule', completed: hasActiveSchedule, action: '/schedules' },
+                    ];
+
+                    setChecklist(items);
+                } catch (error) {
+                    console.error("Error fetching checklist data:", error);
+                } finally {
+                    setIsLoading(false);
                 }
-
-                let items = [
-                    { id: 'invite', label: 'Invite Members', completed: hasInvitations, action: '/teams', role: 'admin,owner' },
-                ];
-
-                // Hide team/invite tasks for regular members
-                const userRole = userData.role?.toLowerCase();
-                if (userRole === 'member') {
-                    items = items.filter(item => item.role?.includes(userRole));
-                }
-
-                setChecklist(items);
             }
         };
 
@@ -60,7 +83,7 @@ export function OnboardingChecklist() {
 
     const allCompleted = checklist.length > 0 && checklist.every(item => item.completed);
 
-    if (isHidden || allCompleted || checklist.length === 0) return null;
+    if (isLoading || isHidden || allCompleted || checklist.length === 0) return null;
 
     return (
         <Card className="mb-6 border-orange-200 bg-orange-50 relative">
