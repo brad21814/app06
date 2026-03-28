@@ -69,6 +69,20 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
       const recaptchaToken = await executeRecaptcha(mode === 'signin' ? 'login' : 'signup');
 
+      // Pre-verify reCAPTCHA to prevent creating users if bot protection fails
+      const verifyRes = await fetch('/api/auth/verify-recaptcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: recaptchaToken, action: mode === 'signin' ? 'login' : 'signup' })
+      });
+      if (!verifyRes.ok) {
+        const vData = await verifyRes.json();
+        if (vData.error?.includes('browser-error')) {
+          throw new Error('Bot protection was blocked by your browser. Please disable adblockers or privacy shields to continue.');
+        }
+        throw new Error(vData.error || 'reCAPTCHA verification failed');
+      }
+
       let userCredential;
       if (mode === 'signin') {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -129,17 +143,38 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
     }
 
     try {
+      if (!executeRecaptcha) {
+        throw new Error('reCAPTCHA not initialized.');
+      }
+
+      const recaptchaToken = await executeRecaptcha(mode === 'signin' ? 'login' : 'signup');
+
+      // Pre-verify reCAPTCHA before popup
+      const verifyRes = await fetch('/api/auth/verify-recaptcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: recaptchaToken, action: mode === 'signin' ? 'login' : 'signup' })
+      });
+      if (!verifyRes.ok) {
+        const vData = await verifyRes.json();
+        if (vData.error?.includes('browser-error')) {
+          throw new Error('Bot protection was blocked by your browser. Please disable adblockers or privacy shields to continue.');
+        }
+        throw new Error(vData.error || 'reCAPTCHA verification failed');
+      }
+
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
 
-      const endpoint = '/api/auth/sign-up';
+      const endpoint = mode === 'signin' ? '/api/auth/sign-in' : '/api/auth/sign-up';
       // Note: sign-up schema expects idToken.
 
       const body = {
         idToken,
         redirect,
         inviteId: inviteId || undefined,
+        recaptchaToken,
       };
 
       const response = await fetch(endpoint, {
