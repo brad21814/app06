@@ -57,16 +57,7 @@ export async function POST(request: Request) {
 
         const { idToken, inviteId, redirect, priceId, recaptchaToken } = result.data;
 
-        // Verify reCAPTCHA
-        const recaptcha = await verifyRecaptcha(recaptchaToken, 'signup');
-        if (!recaptcha.success) {
-            return NextResponse.json(
-                { error: recaptcha.error || 'reCAPTCHA verification failed.' },
-                { status: 403 }
-            );
-        }
-
-        // Verify ID Token
+        // Verify ID Token first so we know who the user is
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         const { uid: newUserId, email } = decodedToken;
 
@@ -80,6 +71,25 @@ export async function POST(request: Request) {
         const usersRef = getUsersCollection();
         const userDocRef = getUserDoc(newUserId);
         const userDocSnapshot = await userDocRef.get();
+
+        // Verify reCAPTCHA
+        const recaptcha = await verifyRecaptcha(recaptchaToken, 'signup');
+        if (!recaptcha.success) {
+            // Safe cleanup: if reCAPTCHA fails and the user doesn't exist in Firestore,
+            // they were just created in Firebase Auth by the client. Delete them to prevent orphaned broken states.
+            if (!userDocSnapshot.exists) {
+                try {
+                    await adminAuth.deleteUser(newUserId);
+                } catch (cleanupError) {
+                    console.error('Failed to delete Firebase Auth user after reCAPTCHA failure:', cleanupError);
+                }
+            }
+
+            return NextResponse.json(
+                { error: recaptcha.error || 'reCAPTCHA verification failed.' },
+                { status: 403 }
+            );
+        }
 
         if (userDocSnapshot.exists) {
             // User already initialized, set session and redirect

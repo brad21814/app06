@@ -69,20 +69,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
       const recaptchaToken = await executeRecaptcha(mode === 'signin' ? 'login' : 'signup');
 
-      // Pre-verify reCAPTCHA to prevent creating users if bot protection fails
-      const verifyRes = await fetch('/api/auth/verify-recaptcha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: recaptchaToken, action: mode === 'signin' ? 'login' : 'signup' })
-      });
-      if (!verifyRes.ok) {
-        const vData = await verifyRes.json();
-        if (vData.error?.includes('browser-error')) {
-          throw new Error('Bot protection was blocked by your browser. Please disable adblockers or privacy shields to continue.');
-        }
-        throw new Error(vData.error || 'reCAPTCHA verification failed');
-      }
-
       let userCredential;
       if (mode === 'signin') {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -110,6 +96,12 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.error?.includes('browser-error')) {
+          throw new Error('Bot protection failed. Please disable adblockers/shields. If testing locally, ensure "localhost" is added to the domains in the reCAPTCHA console.');
+        }
+        if (data.error?.includes('incorrect-captcha-sol')) {
+          throw new Error('reCAPTCHA configuration error. Are you using a v2 key instead of a v3 key?');
+        }
         throw new Error(data.error || 'Authentication failed');
       }
 
@@ -149,20 +141,6 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
 
       const recaptchaToken = await executeRecaptcha(mode === 'signin' ? 'login' : 'signup');
 
-      // Pre-verify reCAPTCHA before popup
-      const verifyRes = await fetch('/api/auth/verify-recaptcha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: recaptchaToken, action: mode === 'signin' ? 'login' : 'signup' })
-      });
-      if (!verifyRes.ok) {
-        const vData = await verifyRes.json();
-        if (vData.error?.includes('browser-error')) {
-          throw new Error('Bot protection was blocked by your browser. Please disable adblockers or privacy shields to continue.');
-        }
-        throw new Error(vData.error || 'reCAPTCHA verification failed');
-      }
-
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
@@ -183,14 +161,17 @@ export function Login({ mode = 'signin' }: { mode?: 'signin' | 'signup' }) {
         body: JSON.stringify(body),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        // If sign-up fails (maybe logic mismatch), try sign-in?
-        // But sign-up covers both.
-        const data = await response.json();
+        if (data.error?.includes('browser-error')) {
+          throw new Error('Bot protection failed. Please disable adblockers/shields. If testing locally, ensure "localhost" is added to the domains in the reCAPTCHA console.');
+        }
+        if (data.error?.includes('incorrect-captcha-sol')) {
+           throw new Error('reCAPTCHA configuration error. Are you using a v2 key instead of a v3 key?');
+        }
         throw new Error(data.error || 'Google Sign In failed');
       }
-
-      const data = await response.json();
       if (data.redirectUrl) {
         router.push(data.redirectUrl);
       } else {
