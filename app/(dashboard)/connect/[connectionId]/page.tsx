@@ -199,7 +199,12 @@ export default function ConnectionPage() {
         } else {
             // Enable
             try {
-                const track = await VideoFromTwilio.createLocalVideoTrack({ width: 640 });
+                // Optimize constraints for background processors (640x480 at 24fps)
+                const track = await VideoFromTwilio.createLocalVideoTrack({ 
+                    width: 640,
+                    height: 480,
+                    frameRate: 24
+                });
                 
                 // Apply default blur if supported
                 try {

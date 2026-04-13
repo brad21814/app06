@@ -30,7 +30,7 @@ export const BACKGROUND_OPTIONS: BackgroundOption[] = [
 
 export class VideoBackgroundManager {
     private currentProcessor: GaussianBlurBackgroundProcessor | VirtualBackgroundProcessor | null = null;
-    private assetsPath = 'https://sdk.twilio.com/js/video-processors/releases/3.1.0/artifacts';
+    private assetsPath = '/assets/video-processors';
 
     /**
      * Verify if the browser/hardware supports frame processing.
@@ -84,7 +84,13 @@ export class VideoBackgroundManager {
 
         // 4. Load and Add
         await processor.loadModel();
-        track.addProcessor(processor);
+        
+        // Use performance-optimized buffer types
+        track.addProcessor(processor, {
+            inputFrameBufferType: 'videoframe',
+            outputFrameBufferContextType: 'bitmaprenderer'
+        });
+        
         this.currentProcessor = processor;
     }
 

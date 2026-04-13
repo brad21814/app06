@@ -10,6 +10,9 @@
 # testing
 /coverage
 
+# Twilio Video Processor Assets (copied from node_modules during build)
+/public/assets/video-processors/
+
 # next.js
 /.next/
 /out/
