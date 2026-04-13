@@ -13,6 +13,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-01
 - N/A (Static image assets in `public/assets/backgrounds/`) (001-video-call-backgrounds)
 - TypeScript / Next.js 16 (App Router) + `react-google-recaptcha-v3`, `firebase-admin`, `zod` (003-recaptcha-v3)
 - N/A (Verification is stateless) (003-recaptcha-v3)
+- TypeScript (Next.js 15+ App Router) + `twilio-video`, `firebase`, `firebase-admin`, `lucide-react`, `date-fns` (001-connect-now-adhoc)
+- Firestore (Connections collection) (001-connect-now-adhoc)
 
 - TypeScript (Next.js) + Next.js App Router, Firebase (Firestore, Auth), Tailwind CSS (001-privacy-management-tiers)
 
@@ -33,9 +35,9 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 TypeScript (Next.js): Follow standard conventions
 
 ## Recent Changes
+- 001-connect-now-adhoc: Added TypeScript (Next.js 15+ App Router) + `twilio-video`, `firebase`, `firebase-admin`, `lucide-react`, `date-fns`
 - 004-improve-getting-started-cta: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 003-recaptcha-v3: Added TypeScript / Next.js 16 (App Router) + `react-google-recaptcha-v3`, `firebase-admin`, `zod`
-- 001-video-call-backgrounds: Added TypeScript (Next.js 15+ App Router) + `twilio-video`, `@twilio/video-processors`, `lucide-react`, `sonner` (for notifications)
 
 
 

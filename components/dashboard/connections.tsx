@@ -2,6 +2,7 @@
 
 import React from "react";
 import { format } from "date-fns";
+import Link from "next/link";
 import {
     Table,
     TableBody,
@@ -11,8 +12,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ConnectionWithParticipants } from "@/types/firestore";
+import { Video } from "lucide-react";
 
 interface ConnectionsProps {
     connections: ConnectionWithParticipants[];
@@ -65,6 +68,7 @@ export function Connections({ connections, currentUserId }: ConnectionsProps) {
                                 <TableHead>Status</TableHead>
                                 <TableHead>Sentiment</TableHead>
                                 <TableHead>Summary</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -90,6 +94,16 @@ export function Connections({ connections, currentUserId }: ConnectionsProps) {
                                     </TableCell>
                                     <TableCell className="max-w-[300px] truncate" title={connection.summary || ''}>
                                         {connection.summary || '-'}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {upcomingStatuses.includes(connection.status) && (
+                                            <Link href={`/connect/${connection.id}`} passHref>
+                                                <Button size="sm" variant="default" className="gap-2">
+                                                    <Video className="w-4 h-4" />
+                                                    Connect Now
+                                                </Button>
+                                            </Link>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
