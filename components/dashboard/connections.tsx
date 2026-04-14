@@ -96,14 +96,12 @@ export function Connections({ connections, currentUserId }: ConnectionsProps) {
                                         {connection.summary || '-'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {upcomingStatuses.includes(connection.status) && (
-                                            <Link href={`/connect/${connection.id}`} passHref>
-                                                <Button size="sm" variant="default" className="gap-2">
-                                                    <Video className="w-4 h-4" />
-                                                    Connect Now
-                                                </Button>
-                                            </Link>
-                                        )}
+                                        <Link href={`/connect/${connection.id}`} passHref>
+                                            <Button size="sm" variant="default" className="gap-2">
+                                                <Video className="w-4 h-4" />
+                                                {upcomingStatuses.includes(connection.status) ? 'Connect Now' : 'Reconnect'}
+                                            </Button>
+                                        </Link>
                                     </TableCell>
                                 </TableRow>
                             ))}
