@@ -16,9 +16,9 @@
 
 - [x] TASK008: Modify the connections page once a connection is completed it should show a summary of the questions and answers. e.g. when did it happen, what questions were asked, who were the participants and a summary of the responses per question. Maybe keep a Reconnect button that would start the session again and overwrite any assets recorded from the old session.
 
-- [ ] TASK012: Allow Admins and Owners to change existing team member roles from the Team management page. They cannot be removed from the 'All Members' team.  They can be removed from other teams.  The owner cannot be changed.
+- [x] TASK012: Allow Admins and Owners to change existing team member roles from the Team management page. They cannot be removed from the 'All Members' team.  They can be removed from other teams.  The owner cannot be changed.
 
-- [ ] TASK014: Allow users to use custom backgrounds in video calls.  Firstly review the Twilio documentation for applying video backgrounds here https://www.twilio.com/docs/video/video-processors  Then make a plan to 1. Default to a blured background for all users. 2. Allow users to select a background image from a list of pre-defined background images, perhaps generate some fun samples that along with teram pulp
+- [x] TASK014: Allow users to use custom backgrounds in video calls.  Firstly review the Twilio documentation for applying video backgrounds here https://www.twilio.com/docs/video/video-processors  Then make a plan to 1. Default to a blured background for all users. 2. Allow users to select a background image from a list of pre-defined background images, perhaps generate some fun samples that along with teram pulp
 
 - [ ] TASK015: Allow admins and owners to view a list of all users in the account and drill into an individual user to gague sentiment and health.
 
