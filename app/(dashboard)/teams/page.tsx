@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense, useActionState } from 'react';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { subscribeToTeamInvitations, revokeInvitation, Invitation } from '@/lib/firebase/firestore';
-import { Loader2, Mail, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-react';
+import { Loader2, Mail, CheckCircle, Clock, Trash2, RefreshCw, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import useSWR from 'swr';
 import { TeamDataWithMembers, User } from '@/types/firestore';
 import { removeTeamMember, updateTeamMemberRole } from '@/app/(login)/actions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ActionState = {
@@ -248,13 +249,21 @@ export default function TeamPage() {
                             Manage your team members and invitations.
                         </p>
                     </div>
-                    {teamData?.id && userData?.accountId && user?.uid && (
-                        <InviteMemberDialog
-                            teamId={teamData.id}
-                            accountId={userData.accountId}
-                            invitedBy={user.uid}
-                        />
-                    )}
+                    <div className="flex items-center gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <Link href="/teams/users">
+                                <Users className="mr-2 h-4 w-4" />
+                                View Organization Users
+                            </Link>
+                        </Button>
+                        {teamData?.id && userData?.accountId && user?.uid && (
+                            <InviteMemberDialog
+                                teamId={teamData.id}
+                                accountId={userData.accountId}
+                                invitedBy={user.uid}
+                            />
+                        )}
+                    </div>
                 </div>
 
                 <Suspense fallback={<TeamMembersSkeleton />}>
