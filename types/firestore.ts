@@ -24,6 +24,11 @@ export interface User {
     hasDismissedGettingStarted?: boolean;
     photoURL?: string | null;
     privacyTier?: PrivacyTier;
+    stats?: {
+        totalConnections: number;
+        lastConnectedAt?: Timestamp | null;
+        averageSentiment?: number;
+    };
 }
 
 export interface Account {

@@ -283,3 +283,52 @@ export async function checkConnectionVisibility(user: User, connection: Connecti
 
     return true;
 }
+
+export async function getAccountUsers(accountId: string): Promise<User[]> {
+    const snapshot = await getUsersCollection()
+        .where('accountId', '==', accountId)
+        .get();
+
+    const users = snapshot.docs.map(d => d.data());
+
+    // Fetch 'All Members' team stats for each user
+    const usersWithStats = await Promise.all(users.map(async (user) => {
+        const teamMemberSnapshot = await getTeamMembersCollection()
+            .where('userId', '==', user.id)
+            .get();
+
+        // Find the 'All Members' team member record or any if none
+        const allMembersTeamMember = teamMemberSnapshot.docs.find(d => {
+            // We'd ideally check team name, but for now let's just use the stats from the first one
+            // as they are currently aggregated at the user document level in many cases 
+            // but let's check for the team member stats.
+            return d.exists;
+        })?.data();
+
+        return {
+            ...user,
+            stats: allMembersTeamMember?.stats || user.stats // Fallback to user.stats if present
+        };
+    }));
+
+    return usersWithStats;
+}
+
+export async function getUserStats(userId: string): Promise<{
+    user: User;
+    connections: ConnectionWithParticipants[];
+}> {
+    const userDoc = await getUserDoc(userId).get();
+    if (!userDoc.exists) {
+        throw new Error('User not found');
+    }
+    const user = userDoc.data()!;
+
+    // Fetch recent connections for this user
+    const connections = await getUserConnections(userId);
+
+    return {
+        user,
+        connections
+    };
+}
