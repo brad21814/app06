@@ -13,7 +13,7 @@ import {
     getAnalyticsCollection,
     getRelationshipsCollection
 } from './collections';
-import { User, Team, Account, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants } from '@/types/firestore';
+import { User, Team, Account, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants, PrivacyTier } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
     const sessionCookie = (await cookies()).get('session');
@@ -238,4 +238,48 @@ export async function getRelationships(teamId: string): Promise<Relationship[]> 
         .get();
 
     return snapshot.docs.map(d => d.data());
+}
+
+export async function getAccountConnections(accountId: string, dateLimit?: Date): Promise<ConnectionWithParticipants[]> {
+    let q = getConnectionsCollection()
+        .where('accountId', '==', accountId)
+        .where('status', '==', 'completed');
+
+    if (dateLimit) {
+        q = q.where('createdAt', '>=', dateLimit);
+    }
+
+    const snapshot = await q.get();
+    const connections = snapshot.docs.map(d => d.data());
+
+    // Sorting must be done in-memory or by index (if not already indexed)
+    connections.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+
+    return enrichConnectionsWithParticipants(connections);
+}
+
+export async function checkConnectionVisibility(user: User, connection: Connection): Promise<boolean> {
+    // Participants always have full access
+    if (connection.proposerId === user.id || connection.confirmerId === user.id) {
+        return true;
+    }
+
+    // Role check
+    const isPrivileged = user.role === 'owner' || user.role === 'admin' || user.role === 'account_admin';
+    if (!isPrivileged) {
+        return false;
+    }
+
+    // Participants privacy check
+    const pIds = [connection.proposerId, connection.confirmerId].filter(Boolean) as string[];
+
+    for (const pid of pIds) {
+        const pDoc = await getUserDoc(pid).get();
+        const pData = pDoc.exists ? pDoc.data() : null;
+        if (pData?.privacyTier === PrivacyTier.TIER_3_PRIVATE) {
+            return false;
+        }
+    }
+
+    return true;
 }

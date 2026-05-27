@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ReactFlow,
     Background,
@@ -14,7 +14,7 @@ import {
     Position,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { getConnectionGraphData, GraphData } from '@/lib/actions/connections';
+import { getConnectionGraphData } from '@/lib/actions/connections';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // Custom Node Component
@@ -49,15 +49,20 @@ const nodeTypes = {
     partner: CustomNode
 };
 
-export function ConnectionsGraph() {
+interface ConnectionsGraphProps {
+    dateLimit?: Date;
+}
+
+export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const loadGraph = async () => {
+            setLoading(true);
             try {
-                const data = await getConnectionGraphData();
+                const data = await getConnectionGraphData(dateLimit);
                 setNodes(data.nodes);
                 setEdges(data.edges.map(e => ({
                     ...e,
@@ -73,38 +78,34 @@ export function ConnectionsGraph() {
         };
 
         loadGraph();
-    }, [setNodes, setEdges]);
-
-    // Default Viewport?
-
-    if (loading) {
-        return <div className="w-full h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">Loading visual network...</div>;
-    }
-
-    if (nodes.length <= 1) { // Only self node
-        return (
-            <div className="w-full h-[300px] flex flex-col items-center justify-center bg-gray-50 rounded-lg text-gray-400 border border-dashed">
-                <p>No connections to visualize yet.</p>
-            </div>
-        );
-    }
+    }, [setNodes, setEdges, dateLimit]);
 
     return (
-        <div className="w-full h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                nodeTypes={nodeTypes}
-                fitView
-                attributionPosition="bottom-right"
-                minZoom={0.5}
-                maxZoom={2}
-            >
-                <Background color="#f1f5f9" gap={20} size={1} />
-                <Controls />
-            </ReactFlow>
+        <div className="space-y-4">
+            {loading ? (
+                <div className="w-full h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">Loading visual network...</div>
+            ) : nodes.length <= 1 ? (
+                <div className="w-full h-[300px] flex flex-col items-center justify-center bg-gray-50 rounded-lg text-gray-400 border border-dashed">
+                    <p>No connections to visualize in this range.</p>
+                </div>
+            ) : (
+                <div className="w-full h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        nodeTypes={nodeTypes}
+                        fitView
+                        attributionPosition="bottom-right"
+                        minZoom={0.5}
+                        maxZoom={2}
+                    >
+                        <Background color="#f1f5f9" gap={20} size={1} />
+                        <Controls />
+                    </ReactFlow>
+                </div>
+            )}
         </div>
     );
 }

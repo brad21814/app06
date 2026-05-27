@@ -11,7 +11,7 @@ import {
     getTeamsCollection
 } from '@/lib/firestore/admin/collections';
 import { setSession } from '@/lib/auth/session';
-import { ActivityType, User, Team, TeamMember } from '@/types/firestore';
+import { ActivityType, User, Team, TeamMember, PrivacyTier } from '@/types/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 import { adminAuth } from '@/lib/firebase/server';
 import { verifyRecaptcha } from '@/lib/auth/recaptcha';
@@ -127,6 +127,7 @@ export async function POST(request: Request) {
             email,
             role: userRole,
             accountId: accountId || null,
+            privacyTier: PrivacyTier.TIER_1_STANDARD,
             createdAt: Timestamp.now() as any,
             updatedAt: Timestamp.now() as any,
         };

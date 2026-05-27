@@ -42,6 +42,7 @@ interface ConnectionData {
     theme?: Theme;
     timerSettings?: TimerSettings;
     startedAt?: any; // Timestamp
+    currentQuestionIndex?: number;
     questionEvents?: QuestionEvent[];
 }
 
@@ -131,10 +132,17 @@ export default function ConnectionPage() {
         const unsub = onSnapshot(doc(getConnectionsCollection(), connectionId), (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
+
+                // Keep local question index in sync with firestore
+                if (typeof data.currentQuestionIndex === 'number') {
+                    setCurrentQuestionIndex(curr => Math.max(curr, data.currentQuestionIndex as number));
+                }
+
                 setConnection(prev => prev ? {
                     ...prev,
                     status: data.status,
                     startedAt: data.startedAt,
+                    currentQuestionIndex: data.currentQuestionIndex,
                     // If questions update (e.g. initially generated), update them too
                     theme: prev.theme ? { ...prev.theme, questions: data.questions || prev.theme.questions } : prev.theme
                 } : null);
@@ -150,6 +158,7 @@ export default function ConnectionPage() {
             await updateDoc(doc(getConnectionsCollection(), connectionId), {
                 startedAt: Timestamp.now(),
                 status: 'in_progress',
+                currentQuestionIndex: 0,
                 questionEvents: arrayUnion({
                     question: connection?.theme?.questions?.[0] || 'First Question',
                     askedAt: Timestamp.now()
@@ -356,7 +365,18 @@ export default function ConnectionPage() {
                 if (newValue <= 0) {
                     clearInterval(timer);
                     if (currentQuestionIndex < totalQuestions - 1) {
-                        setCurrentQuestionIndex(curr => curr + 1);
+                        const nextIndex = currentQuestionIndex + 1;
+                        setCurrentQuestionIndex(nextIndex);
+
+                        if (connectionId && questions && questions[nextIndex]) {
+                            updateDoc(doc(getConnectionsCollection(), connectionId), {
+                                currentQuestionIndex: nextIndex,
+                                questionEvents: arrayUnion({
+                                    question: questions[nextIndex],
+                                    askedAt: Timestamp.now()
+                                })
+                            }).catch(err => console.error(err));
+                        }
                     } else {
                         // Last question finished
                         setIsClosing(true);
@@ -368,7 +388,7 @@ export default function ConnectionPage() {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [currentQuestionIndex, room, maxTime, minTime, totalQuestions, connection?.startedAt, isClosing]);
+    }, [currentQuestionIndex, room, maxTime, minTime, totalQuestions, connection?.startedAt, isClosing, connectionId, questions]);
 
     // Closing Countdown Effect
     useEffect(() => {
@@ -409,6 +429,7 @@ export default function ConnectionPage() {
             if (connectionId && questions[nextIndex]) {
                 try {
                     await updateDoc(doc(getConnectionsCollection(), connectionId), {
+                        currentQuestionIndex: nextIndex,
                         questionEvents: arrayUnion({
                             question: questions[nextIndex],
                             askedAt: Timestamp.now()

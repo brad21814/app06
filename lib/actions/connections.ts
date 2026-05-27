@@ -3,6 +3,7 @@
 import { adminDb } from '@/lib/firebase/server';
 import { getUser } from '@/lib/firestore/admin/queries';
 import { Connection } from '@/types/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export interface GraphNode {
     id: string;
@@ -31,7 +32,7 @@ export interface GraphData {
     edges: GraphEdge[];
 }
 
-export async function getConnectionGraphData(): Promise<GraphData> {
+export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphData> {
     const user = await getUser();
 
     if (!user) {
@@ -39,34 +40,34 @@ export async function getConnectionGraphData(): Promise<GraphData> {
     }
 
     const userId = user.id;
+    const accountId = user.accountId;
 
     const connectionsRef = adminDb.collection('connections');
-    const isOwnerOrAdmin = user.role === 'owner' || user.role === 'admin';
-    let teamId: string | null = null;
+    const isPrivileged = user.role === 'owner' || user.role === 'admin' || user.role === 'account_admin';
 
-    // If admin, we need the team ID to fetch all connections
-    if (isOwnerOrAdmin) {
-        // We can fetch the team for the user. 
-        // Best way is to use `getTeamForUser` equivalent or query team members.
-        // Let's query team members for this user.
-        const memberQuery = await adminDb.collection('team_members').where('userId', '==', userId).limit(1).get();
-        if (!memberQuery.empty) {
-            teamId = memberQuery.docs[0].data().teamId;
-        }
+    // Apply default 90-day window for privileged users if not specified
+    let actualDateLimit = dateLimit;
+    if (isPrivileged && !actualDateLimit) {
+        actualDateLimit = new Date();
+        actualDateLimit.setDate(actualDateLimit.getDate() - 90);
     }
 
     const relevantConnections: Connection[] = [];
-    const seenIds = new Set();
+    const seenIds = new Set<string>();
     const partnerStats = new Map<string, { count: number; name: string; image?: string; id: string }>();
 
-    if (isOwnerOrAdmin && teamId) {
-        // Fetch ALL completed connections for the team
-        const teamConnectionsQuery = await connectionsRef
-            .where('teamId', '==', teamId)
-            .where('status', '==', 'completed')
-            .get();
+    if (isPrivileged && accountId) {
+        // Fetch ALL completed connections for the account
+        let q = connectionsRef
+            .where('accountId', '==', accountId)
+            .where('status', '==', 'completed');
 
-        teamConnectionsQuery.forEach(doc => {
+        if (actualDateLimit) {
+            q = q.where('createdAt', '>=', Timestamp.fromDate(actualDateLimit));
+        }
+
+        const querySnapshot = await q.get();
+        querySnapshot.forEach(doc => {
             if (!seenIds.has(doc.id)) {
                 relevantConnections.push({ id: doc.id, ...doc.data() } as Connection);
                 seenIds.add(doc.id);
@@ -93,7 +94,7 @@ export async function getConnectionGraphData(): Promise<GraphData> {
 
     // Collect all participant IDs
     const participantIds = new Set<string>();
-    if (!isOwnerOrAdmin) participantIds.add(userId); // Ensure 'me' is in list for member view logic? No, 'me' is special.
+    if (!isPrivileged) participantIds.add(userId); 
 
     for (const conn of relevantConnections) {
         if (conn.proposerId) participantIds.add(conn.proposerId);
@@ -122,8 +123,8 @@ export async function getConnectionGraphData(): Promise<GraphData> {
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
 
-    if (isOwnerOrAdmin && teamId) {
-        // --- Circular Layout for Team ---
+    if (isPrivileged && accountId) {
+        // --- Circular Layout for Account ---
         const allUsers = Array.from(participantIds);
         const count = allUsers.length;
         const radius = 300;
@@ -136,24 +137,10 @@ export async function getConnectionGraphData(): Promise<GraphData> {
 
             nodes.push({
                 id: uid,
-                type: uid === userId ? 'self' : 'partner', // Highlight admin themselves? Or just 'partner' style for everyone?
+                type: uid === userId ? 'self' : 'partner', 
                 data: { label: details.name, image: details.image },
                 position: { x, y }
             });
-        });
-
-        // Edges for all connections
-        relevantConnections.forEach(conn => {
-            const source = conn.proposerId;
-            const target = conn.confirmerId;
-            // Prevent duplicate edges (a-b and b-a) if any. 
-            // We can just add them. ReactFlow handles multiple edges between nodes okay, usually needs distinct handles or ids.
-            // Let's create a unique ID based on sorted IDs to dedupe visually if we wanted, but connections are distinct events.
-            // Actually, we want to aggregate weight between pairs.
-
-            const pairId = [source, target].sort().join('-');
-            // ... Logic to aggregate weights if we want single thick lines OR just draw all lines.
-            // Drawing all lines might be messy. Let's aggregate.
         });
 
         // Aggregate connections between pairs

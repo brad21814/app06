@@ -225,6 +225,7 @@ async function seedDefaultUserAndTeam() {
         email,
         role: 'owner',
         accountId: 'account-1',
+        privacyTier: 'TIER_1',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
     });

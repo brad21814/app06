@@ -92,7 +92,7 @@ export function Connections({ connections, currentUserId }: ConnectionsProps) {
                                             </Badge>
                                         ) : '-'}
                                     </TableCell>
-                                    <TableCell className="max-w-[300px] truncate" title={connection.summary || ''}>
+                                    <TableCell className={`max-w-[300px] truncate ${connection.summary === 'Details restricted by participant privacy settings.' ? 'italic text-muted-foreground' : ''}`} title={connection.summary || ''}>
                                         {connection.summary || '-'}
                                     </TableCell>
                                     <TableCell className="text-right">

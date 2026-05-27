@@ -176,7 +176,9 @@ export interface Connection {
     endedAt?: Timestamp | null;
     analysis?: ConnectionAnalysis | null;
     questions?: string[] | null; // Selected/Randomized questions for this session
+    currentQuestionIndex?: number; // Synchronized index of the active question
     questionEvents?: QuestionEvent[] | null; // Log of when questions were asked
+    accountId: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
