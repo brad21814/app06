@@ -68,7 +68,11 @@ export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
                     ...e,
                     type: 'default',
                     markerEnd: { type: MarkerType.ArrowClosed },
-                    style: { strokeWidth: Math.max(1, (e.data?.weight || 1) * 2), stroke: '#94a3b8' }
+                    style: { strokeWidth: Math.max(1, (e.data?.weight || 1) * 2), stroke: '#94a3b8' },
+                    labelStyle: { fill: '#64748b', fontWeight: 600, fontSize: 10 },
+                    labelBgStyle: { fill: '#f8fafc', fillOpacity: 0.8 },
+                    labelBgPadding: [4, 2],
+                    labelBgBorderRadius: 4
                 })));
             } catch (error) {
                 console.error("Failed to load connection graph:", error);

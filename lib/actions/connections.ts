@@ -54,7 +54,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
 
     const relevantConnections: Connection[] = [];
     const seenIds = new Set<string>();
-    const partnerStats = new Map<string, { count: number; name: string; image?: string; id: string }>();
+    const partnerStats = new Map<string, { count: number; name: string; image?: string; id: string, sumSentiment: number }>();
 
     if (isPrivileged && accountId) {
         // Fetch ALL completed connections for the account
@@ -144,21 +144,25 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
         });
 
         // Aggregate connections between pairs
-        const pairWeights = new Map<string, number>();
+        const pairStats = new Map<string, { weight: number, sumSentiment: number }>();
         relevantConnections.forEach(conn => {
             const pairId = [conn.proposerId, conn.confirmerId].sort().join(':::');
-            pairWeights.set(pairId, (pairWeights.get(pairId) || 0) + 1);
+            const stats = pairStats.get(pairId) || { weight: 0, sumSentiment: 0 };
+            stats.weight += 1;
+            stats.sumSentiment += (conn.sentiment || 0);
+            pairStats.set(pairId, stats);
         });
 
-        pairWeights.forEach((weight, pairId) => {
+        pairStats.forEach((stats, pairId) => {
             const [u1, u2] = pairId.split(':::');
+            const avgSentiment = stats.weight > 0 ? Math.round(stats.sumSentiment / stats.weight) : 0;
             edges.push({
                 id: `e-${pairId}`,
                 source: u1,
                 target: u2,
                 animated: false,
-                label: weight > 1 ? `${weight}` : undefined,
-                data: { weight }
+                label: `${stats.weight}x • ${avgSentiment}`,
+                data: { weight: stats.weight }
             });
         });
 
@@ -186,12 +190,14 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
                     id: partnerId,
                     count: 0,
                     name: details.name,
-                    image: details.image
+                    image: details.image,
+                    sumSentiment: 0
                 });
             }
 
             const stats = partnerStats.get(partnerId)!;
             stats.count++;
+            stats.sumSentiment += (conn.sentiment || 0);
         }
 
         const partners = Array.from(partnerStats.values());
@@ -202,6 +208,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
             const angle = (index / count) * 2 * Math.PI;
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
+            const avgSentiment = stats.count > 0 ? Math.round(stats.sumSentiment / stats.count) : 0;
 
             nodes.push({
                 id: stats.id,
@@ -215,7 +222,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
                 source: userId,
                 target: stats.id,
                 animated: true,
-                label: `${stats.count} connection${stats.count > 1 ? 's' : ''}`,
+                label: `${stats.count}x • ${avgSentiment}`,
                 data: { weight: stats.count }
             });
         });
