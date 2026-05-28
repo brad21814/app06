@@ -34,7 +34,11 @@ export function PrivacyManager({ uid, initialTier }: PrivacyManagerProps) {
 
     return (
         <div className="space-y-6">
-            <PrivacySelectionForm onSelect={setTier} selectedTier={tier} />
+            <PrivacySelectionForm 
+                onSelect={setTier} 
+                selectedTier={tier} 
+                showCard={false}
+            />
             <div className="flex justify-end">
                 <Button 
                     onClick={handleSave} 

@@ -116,11 +116,14 @@ export default function GeneralPage() {
       </Card>
 
       <div className="mt-8">
-        <h2 className="text-lg lg:text-2xl font-medium text-gray-900 mb-6">
-          Privacy Settings
-        </h2>
         <Card>
-          <CardContent className="pt-6">
+          <CardHeader>
+            <CardTitle>Privacy Settings</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Manage how your personal connection data and transcripts are processed.
+            </p>
+          </CardHeader>
+          <CardContent>
             <PrivacyManager
               uid={user?.uid || ''}
               initialTier={userData?.privacyTier}
