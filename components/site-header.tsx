@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleIcon, Home, LogOut, Settings, Users, Shield, Activity, BarChart } from 'lucide-react';
+import { CircleIcon, Home, LogOut, Settings, Users, Shield, Activity, BarChart, CreditCard, Lock, User } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -102,13 +102,27 @@ function UserMenu() {
                                 <span>Analytics</span>
                             </Link>
                         </DropdownMenuItem>
+
+                        <DropdownMenuItem className="cursor-pointer" asChild>
+                            <Link href="/settings/billing" className="flex w-full items-center">
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                <span>Billing</span>
+                            </Link>
+                        </DropdownMenuItem>
                     </>
                 )}
 
                 <DropdownMenuItem className="cursor-pointer" asChild>
                     <Link href="/profile" className="flex w-full items-center">
-                        <Shield className="mr-2 h-4 w-4" />
+                        <User className="mr-2 h-4 w-4" />
                         <span>My Profile</span>
+                    </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/account" className="flex w-full items-center">
+                        <Lock className="mr-2 h-4 w-4" />
+                        <span>Security</span>
                     </Link>
                 </DropdownMenuItem>
 
