@@ -23,10 +23,25 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getDate = (val: any) => {
     if (!val) return null;
-    if (typeof val === 'number') return new Date(val);
-    if (typeof val.toDate === 'function') return val.toDate();
-    if (val._seconds !== undefined) return new Date(val._seconds * 1000);
-    return new Date(val);
+    try {
+        if (typeof val === 'number') return new Date(val);
+        if (typeof val.toDate === 'function') return val.toDate();
+        if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+    } catch (e) {
+        return null;
+    }
+};
+
+const formatDateSafe = (dateVal: any, formatStr: string) => {
+    const d = getDate(dateVal);
+    if (!d) return 'N/A';
+    try {
+        return format(d, formatStr);
+    } catch (e) {
+        return 'N/A';
+    }
 };
 
 export default function UserListPage() {

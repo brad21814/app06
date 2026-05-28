@@ -26,10 +26,25 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getDate = (val: any) => {
     if (!val) return null;
-    if (typeof val === 'number') return new Date(val);
-    if (typeof val.toDate === 'function') return val.toDate();
-    if (val._seconds !== undefined) return new Date(val._seconds * 1000);
-    return new Date(val);
+    try {
+        if (typeof val === 'number') return new Date(val);
+        if (typeof val.toDate === 'function') return val.toDate();
+        if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+    } catch (e) {
+        return null;
+    }
+};
+
+const formatDateSafe = (dateVal: any, formatStr: string) => {
+    const d = getDate(dateVal);
+    if (!d) return 'N/A';
+    try {
+        return format(d, formatStr);
+    } catch (e) {
+        return 'N/A';
+    }
 };
 
 export default function UserDrilldownPage({ params }: { params: Promise<{ userId: string }> }) {
@@ -60,10 +75,10 @@ export default function UserDrilldownPage({ params }: { params: Promise<{ userId
 
     const { user, connections } = stats;
 
-    const sentimentData = connections
+    const sentimentData = (connections || [])
         .filter(c => c.status === 'completed' && c.sentiment !== undefined && c.sentiment !== null)
         .map(c => ({
-            date: getDate(c.createdAt)!,
+            date: getDate(c.createdAt) || new Date(),
             sentiment: c.sentiment as number
         }));
 
@@ -121,7 +136,7 @@ export default function UserDrilldownPage({ params }: { params: Promise<{ userId
                                 <Calendar className="h-5 w-5 text-green-500 mb-1" />
                                 <span className="text-sm font-bold">
                                     {user.stats?.lastConnectedAt 
-                                        ? format(getDate(user.stats.lastConnectedAt)!, 'MMM d')
+                                        ? formatDateSafe(user.stats.lastConnectedAt, 'MMM d')
                                         : 'N/A'
                                     }
                                 </span>
