@@ -1,4 +1,5 @@
 import { getAccountUsers, getUser } from '@/lib/firestore/admin/queries';
+import { serializeFirestoreData } from '@/lib/utils';
 
 export async function GET() {
   const user = await getUser();
@@ -11,5 +12,5 @@ export async function GET() {
   }
 
   const users = await getAccountUsers(user.accountId);
-  return Response.json(users);
+  return Response.json(serializeFirestoreData(users));
 }

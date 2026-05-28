@@ -1,13 +1,11 @@
 This is the Google Pub/Sub fake.
 Implementation may be incomplete or differ from the real system.
-May 27, 2026 4:42:15 PM com.google.cloud.pubsub.testing.v1.Main main
+May 28, 2026 3:40:54 PM com.google.cloud.pubsub.testing.v1.Main main
 INFO: IAM integration is disabled. IAM policy methods and ACL checks are not supported
 SLF4J(W): No SLF4J providers were found.
 SLF4J(W): Defaulting to no-operation (NOP) logger implementation
 SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
-May 27, 2026 4:42:15 PM com.google.cloud.pubsub.testing.v1.Main main
+May 28, 2026 3:40:54 PM com.google.cloud.pubsub.testing.v1.Main main
 INFO: Server started, listening on 8085
-May 27, 2026 4:42:26 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+May 28, 2026 3:41:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected HTTP/2 connection.
-*** shutting down gRPC server since JVM is shutting down
-*** server shut down

@@ -24,6 +24,14 @@ import { Connections } from '@/components/dashboard/connections';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+const getDate = (val: any) => {
+    if (!val) return null;
+    if (typeof val === 'number') return new Date(val);
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+    return new Date(val);
+};
+
 export default function UserDrilldownPage({ params }: { params: Promise<{ userId: string }> }) {
     const { userId } = use(params);
     const { data: stats, isLoading, error } = useSWR<{
@@ -54,20 +62,10 @@ export default function UserDrilldownPage({ params }: { params: Promise<{ userId
 
     const sentimentData = connections
         .filter(c => c.status === 'completed' && c.sentiment !== undefined && c.sentiment !== null)
-        .map(c => {
-            let date: Date;
-            if (typeof c.createdAt === 'string') {
-                date = new Date(c.createdAt);
-            } else if (c.createdAt && typeof (c.createdAt as any).toDate === 'function') {
-                date = (c.createdAt as any).toDate();
-            } else {
-                date = new Date(c.createdAt as any);
-            }
-            return {
-                date,
-                sentiment: c.sentiment as number
-            };
-        });
+        .map(c => ({
+            date: getDate(c.createdAt)!,
+            sentiment: c.sentiment as number
+        }));
 
     return (
         <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
@@ -123,7 +121,7 @@ export default function UserDrilldownPage({ params }: { params: Promise<{ userId
                                 <Calendar className="h-5 w-5 text-green-500 mb-1" />
                                 <span className="text-sm font-bold">
                                     {user.stats?.lastConnectedAt 
-                                        ? format(typeof user.stats.lastConnectedAt === 'string' ? new Date(user.stats.lastConnectedAt) : (user.stats.lastConnectedAt as any).toDate(), 'MMM d')
+                                        ? format(getDate(user.stats.lastConnectedAt)!, 'MMM d')
                                         : 'N/A'
                                     }
                                 </span>

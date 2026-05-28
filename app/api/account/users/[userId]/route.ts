@@ -1,4 +1,5 @@
 import { getUserStats, getUser } from '@/lib/firestore/admin/queries';
+import { serializeFirestoreData } from '@/lib/utils';
 
 export async function GET(
     request: Request,
@@ -19,7 +20,7 @@ export async function GET(
             return new Response('Forbidden', { status: 403 });
         }
 
-        return Response.json(stats);
+        return Response.json(serializeFirestoreData(stats));
     } catch (error) {
         console.error('Error fetching user stats:', error);
         return new Response('User not found', { status: 404 });

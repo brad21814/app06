@@ -21,6 +21,14 @@ import { User } from '@/types/firestore';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+const getDate = (val: any) => {
+    if (!val) return null;
+    if (typeof val === 'number') return new Date(val);
+    if (typeof val.toDate === 'function') return val.toDate();
+    if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+    return new Date(val);
+};
+
 export default function UserListPage() {
     const { data: users, isLoading, error } = useSWR<User[]>('/api/account/users', fetcher);
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -41,8 +49,8 @@ export default function UserListPage() {
         let bValue: any = b[key as keyof User];
 
         if (key === 'lastConnected') {
-            aValue = a.stats?.lastConnectedAt?.toDate().getTime() || 0;
-            bValue = b.stats?.lastConnectedAt?.toDate().getTime() || 0;
+            aValue = getDate(a.stats?.lastConnectedAt)?.getTime() || 0;
+            bValue = getDate(b.stats?.lastConnectedAt)?.getTime() || 0;
         } else if (key === 'totalConnections') {
             aValue = a.stats?.totalConnections || 0;
             bValue = b.stats?.totalConnections || 0;
@@ -151,7 +159,7 @@ export default function UserListPage() {
                                             <TableCell className="capitalize text-sm">{user.role}</TableCell>
                                             <TableCell className="text-sm">
                                                 {user.stats?.lastConnectedAt 
-                                                    ? format(user.stats.lastConnectedAt.toDate(), 'MMM d, yyyy')
+                                                    ? format(getDate(user.stats.lastConnectedAt)!, 'MMM d, yyyy')
                                                     : <span className="text-muted-foreground italic text-xs">Never</span>
                                                 }
                                             </TableCell>

@@ -13,7 +13,8 @@
     "stop": "npm run emulator:stop && lsof -t -i:3000 -i:3001 | xargs -r kill -9",
     "start:local": "./scripts/ngrok-start.sh && npm run emulator:start && npm run dev:emulator",
     "stop:local": "./scripts/ngrok-stop.sh && npm run emulator:stop && lsof -t -i:3000 -i:3001 | xargs -r kill -9",
-    "db:reset": "GOOGLE_APPLICATION_CREDENTIALS=\"secrets/komandra-app06-3d2e18069412.json\" npx tsx scripts/seed_database.ts"
+    "db:reset": "GOOGLE_APPLICATION_CREDENTIALS=\"secrets/komandra-app06-3d2e18069412.json\" npx tsx scripts/seed_database.ts",
+    "db:seed:demo": "GOOGLE_APPLICATION_CREDENTIALS=\"secrets/komandra-app06-3d2e18069412.json\" npx tsx scripts/seed_demo_data.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.57.0",
