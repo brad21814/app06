@@ -146,12 +146,12 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
         // Aggregate connections between pairs
         const pairWeights = new Map<string, number>();
         relevantConnections.forEach(conn => {
-            const pairId = [conn.proposerId, conn.confirmerId].sort().join('-');
+            const pairId = [conn.proposerId, conn.confirmerId].sort().join(':::');
             pairWeights.set(pairId, (pairWeights.get(pairId) || 0) + 1);
         });
 
         pairWeights.forEach((weight, pairId) => {
-            const [u1, u2] = pairId.split('-');
+            const [u1, u2] = pairId.split(':::');
             edges.push({
                 id: `e-${pairId}`,
                 source: u1,
