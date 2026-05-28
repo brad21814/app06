@@ -28,6 +28,12 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+ui-debug.log
+emulator.log
+firestore-debug.log
+pubsub-debug.log
+emulator_lite.log
 
 # local env files
 .env
