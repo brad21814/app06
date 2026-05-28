@@ -19,6 +19,19 @@ interface ActiveScheduleCardProps {
     onDelete: (schedule: Schedule) => void;
 }
 
+const getDate = (val: any) => {
+    if (!val) return null;
+    try {
+        if (typeof val === 'number') return new Date(val);
+        if (typeof val.toDate === 'function') return val.toDate();
+        if (val._seconds !== undefined) return new Date(val._seconds * 1000);
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? null : d;
+    } catch (e) {
+        return null;
+    }
+};
+
 export function ActiveScheduleCard({
     schedule,
     team,
@@ -35,7 +48,7 @@ export function ActiveScheduleCard({
     const [loadingStats, setLoadingStats] = useState(true);
 
     // Calculate Window
-    const nextRunDate = schedule.nextRunAt.toDate();
+    const nextRunDate = getDate(schedule.nextRunAt) || new Date();
     let windowStartDate = new Date(nextRunDate);
 
     if (schedule.frequency === 'weekly') {
