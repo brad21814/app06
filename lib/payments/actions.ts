@@ -73,7 +73,7 @@ export async function createAccountPortalSession(accountId: string, returnUrl: s
 
         const account = accountDoc.data();
         if (!account || !account.stripeCustomerId) {
-            throw new Error('Customer ID not found for this account');
+            throw new Error('STRIPE_CUSTOMER_MISSING');
         }
 
         const session = await stripe.billingPortal.sessions.create({
@@ -82,9 +82,12 @@ export async function createAccountPortalSession(accountId: string, returnUrl: s
         });
 
         return { url: session.url };
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating portal session:', error);
-        throw error;
+        if (error.message === 'STRIPE_CUSTOMER_MISSING') {
+            throw new Error('No Stripe customer found. Please upgrade your plan first to set up billing.');
+        }
+        throw new Error(error.message || 'Failed to create billing portal session');
     }
 }
 

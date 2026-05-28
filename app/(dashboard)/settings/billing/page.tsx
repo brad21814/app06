@@ -51,9 +51,9 @@ export default function BillingPage() {
             const returnUrl = window.location.origin + '/settings/billing';
             const { url } = await createAccountPortalSession(userData.accountId, returnUrl);
             window.location.href = url;
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert('Failed to open billing portal.');
+            alert(error.message || 'Failed to open billing portal. Please ensure you have a payment method set up.');
         } finally {
             setIsProcessing(false);
         }

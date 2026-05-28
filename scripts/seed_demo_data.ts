@@ -103,8 +103,9 @@ async function seedData() {
         ownerId: 'owner-1',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-        subscriptionStatus: 'active',
+        subscriptionStatus: 'trialing',
         subscriptionTier: 'culture',
+        trialEndsAt: Timestamp.fromDate(new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)), // 14 days
         userCount: USERS.length,
         hasReviewedThemes: true
     });
