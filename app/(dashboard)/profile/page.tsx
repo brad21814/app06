@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react';
 import { updateAccount } from '@/app/(login)/actions';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { PrivacyManager } from '@/components/settings/privacy-manager';
+import { PhotoUpload } from '@/components/settings/photo-upload';
 
 
 type ActionState = {
@@ -83,6 +84,8 @@ export default function GeneralPage() {
       <h1 className="text-lg lg:text-2xl font-medium text-gray-900 mb-6">
         My Profile
       </h1>
+
+      <PhotoUpload />
 
       <Card>
         <CardHeader>

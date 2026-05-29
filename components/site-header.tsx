@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { signOut } from 'firebase/auth';
@@ -49,17 +49,12 @@ function UserMenu() {
     return (
         <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
-                <Avatar className="cursor-pointer size-9 border border-gray-200">
-                    <AvatarImage alt={userData?.name || user.email || ''} src={user.photoURL || ''} />
-                    <AvatarFallback>
-                        {(userData?.name || user.email || 'U')
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 2)}
-                    </AvatarFallback>
-                </Avatar>
+                <button className="outline-none">
+                    <UserAvatar 
+                        user={{ ...userData, photoURL: user.photoURL }} 
+                        className="cursor-pointer size-9 border border-gray-200" 
+                    />
+                </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="flex flex-col gap-1 w-56">
                 <div className="px-2 py-1.5 text-sm font-semibold text-gray-900">

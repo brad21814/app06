@@ -15,7 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { getConnectionGraphData } from '@/lib/actions/connections';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 // Custom Node Component
 const CustomNode = ({ data, type }: any) => {
@@ -30,12 +30,10 @@ const CustomNode = ({ data, type }: any) => {
             style={{ width: size, height: size }}
         >
             <Handle type="target" position={Position.Top} className="opacity-0" />
-            <Avatar className="w-full h-full">
-                <AvatarImage src={data.image} alt={data.label} />
-                <AvatarFallback className={isSelf ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'}>
-                    {data.label.charAt(0)}
-                </AvatarFallback>
-            </Avatar>
+            <UserAvatar 
+                user={{ name: data.label, photoURL: data.image }} 
+                className="w-full h-full border-0" 
+            />
             <div className="absolute -bottom-6 whitespace-nowrap text-xs font-medium bg-white/80 px-2 py-0.5 rounded-full border border-gray-100">
                 {data.label}
             </div>

@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { toast } from 'sonner';
 import { Users, Video, PhoneOff, Mic, MicOff, VideoOff, MessageSquare, ChevronLeft, ChevronRight, Play, Lock, Loader2, Check, X } from 'lucide-react';
 import VideoFromTwilio, { Room, LocalTrack, RemoteTrack, LocalAudioTrack, LocalVideoTrack, RemoteAudioTrack, RemoteVideoTrack } from 'twilio-video';
@@ -21,6 +21,7 @@ interface Participant {
     name: string;
     email: string;
     role: 'proposer' | 'confirmer';
+    photoURL?: string;
 }
 
 interface Theme {
@@ -554,9 +555,10 @@ export default function ConnectionPage() {
                         <div className="space-y-3">
                             {connection?.participants?.map(p => (
                                 <div key={p.id} className="flex items-center gap-3">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                                    <UserAvatar 
+                                        user={{ name: p.name, photoURL: p.photoURL }} 
+                                        className="w-8 h-8" 
+                                    />
                                     <div>
                                         <p className="text-sm font-medium">{p.name}</p>
                                         <p className="text-xs text-gray-400 capitalize">{p.role}</p>
@@ -600,9 +602,10 @@ export default function ConnectionPage() {
                                         <VideoTrack track={localVideoTrack} />
                                     ) : (
                                         <div className="flex flex-col items-center p-4 text-center">
-                                            <Avatar className="w-12 h-12 mb-2 bg-gray-700">
-                                                <AvatarFallback>Me</AvatarFallback>
-                                            </Avatar>
+                                            <UserAvatar 
+                                                className="w-12 h-12 mb-2 border-2 border-muted" 
+                                                fallbackClassName="bg-blue-100 text-blue-700"
+                                            />
                                             <p className="text-[10px] text-gray-400">Camera Off</p>
                                         </div>
                                     )}
@@ -915,9 +918,11 @@ const Participant = ({ participant, localName }: { participant: any, localName: 
                     <VideoTrack track={mainVideoTrack} />
                 ) : (
                     <div className="flex flex-col items-center">
-                        <Avatar className="w-20 h-20 mb-4 bg-gray-700">
-                            <AvatarFallback>{localName.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <UserAvatar 
+                            user={{ name: localName }} 
+                            className="w-20 h-20 mb-4 border-2 border-muted" 
+                            fallbackClassName="text-3xl bg-blue-100 text-blue-700"
+                        />
                         <p className="text-sm text-gray-400">Camera Off</p>
                     </div>
                 )}

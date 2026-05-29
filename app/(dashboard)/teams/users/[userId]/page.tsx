@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { User, ConnectionWithParticipants } from '@/types/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Badge } from '@/components/ui/badge';
 import { UserHealthChart } from '@/components/dashboard/user-health-chart';
 import { Connections } from '@/components/dashboard/connections';
@@ -96,11 +96,7 @@ export default function UserDrilldownPage({ params }: { params: Promise<{ userId
 
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="flex items-center space-x-4">
-                        <Avatar className="h-20 w-20">
-                            <AvatarFallback className="text-2xl">
-                                {user.name?.split(' ').map(n => n[0]).join('') || user.email[0].toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
+                        <UserAvatar user={user} className="h-20 w-20 border-2 border-muted shadow-sm" fallbackClassName="text-2xl" />
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight text-gray-900">{user.name || 'N/A'}</h1>
                             <p className="text-muted-foreground">{user.email}</p>

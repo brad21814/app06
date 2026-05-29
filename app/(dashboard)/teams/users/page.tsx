@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { User } from '@/types/firestore';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -155,11 +155,7 @@ export default function UserListPage() {
                                         <TableRow key={user.id} className={isAtRisk(user) ? 'bg-red-50/30' : ''}>
                                             <TableCell>
                                                 <div className="flex items-center space-x-3">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarFallback>
-                                                            {user.name?.split(' ').map(n => n[0]).join('') || user.email[0].toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
+                                                    <UserAvatar user={user} className="h-8 w-8" />
                                                     <div>
                                                         <p className="font-medium text-sm">{user.name || 'N/A'}</p>
                                                         <p className="text-xs text-muted-foreground">{user.email}</p>
