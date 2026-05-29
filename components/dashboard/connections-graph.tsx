@@ -64,9 +64,8 @@ export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
                 setNodes(data.nodes);
                 setEdges(data.edges.map(e => ({
                     ...e,
-                    type: 'default',
-                    markerEnd: { type: MarkerType.ArrowClosed },
-                    style: { strokeWidth: Math.max(1, (e.data?.weight || 1) * 2), stroke: '#94a3b8' },
+                    type: 'straight',
+                    style: { strokeWidth: Math.max(1, (e.data?.weight || 1) * 1.5), stroke: '#cbd5e1' },
                     labelStyle: { fill: '#64748b', fontWeight: 600, fontSize: 10 },
                     labelBgStyle: { fill: '#f8fafc', fillOpacity: 0.8 },
                     labelBgPadding: [4, 2],
