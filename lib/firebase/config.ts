@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'dummy-api-key',
@@ -18,20 +19,19 @@ console.log('Firebase Config Debug:', {
     projectId: firebaseConfig.projectId
 });
 
-import { connectAuthEmulator } from 'firebase/auth';
-import { connectFirestoreEmulator } from 'firebase/firestore';
-
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
     // Connect to emulators
     // Note: These ports must match firebase.json
     connectAuthEmulator(auth, 'http://localhost:9099');
     connectFirestoreEmulator(db, 'localhost', 8080);
+    connectStorageEmulator(storage, 'localhost', 9199);
     console.log('Connected to Firebase Emulators');
 }
 
-export { app, auth, db };
+export { app, auth, db, storage };

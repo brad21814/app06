@@ -13,11 +13,11 @@ const db = getFirestore();
 const auth = getAuth();
 
 const USERS = [
-    { uid: 'owner-1', email: 'brad+o@komandra.com', name: 'Brad Owner', role: 'owner' },
-    { uid: 'admin-1', email: 'brad+u1@komandra.com', name: 'Sarah Admin', role: 'admin' },
-    { uid: 'member-1', email: 'brad+u2@komandra.com', name: 'John Member', role: 'member' },
-    { uid: 'member-2', email: 'brad+u3@komandra.com', name: 'Alice Member', role: 'member' },
-    { uid: 'member-3', email: 'brad+u4@komandra.com', name: 'Bob Member', role: 'member' },
+    { uid: 'owner-1', email: 'brad+o@komandra.com', name: 'Brad Owner', role: 'owner', photoURL: 'https://i.pravatar.cc/150?u=owner-1' },
+    { uid: 'admin-1', email: 'brad+u1@komandra.com', name: 'Sarah Admin', role: 'admin', photoURL: 'https://i.pravatar.cc/150?u=admin-1' },
+    { uid: 'member-1', email: 'brad+u2@komandra.com', name: 'John Member', role: 'member', photoURL: 'https://i.pravatar.cc/150?u=member-1' },
+    { uid: 'member-2', email: 'brad+u3@komandra.com', name: 'Alice Member', role: 'member', photoURL: 'https://i.pravatar.cc/150?u=member-2' },
+    { uid: 'member-3', email: 'brad+u4@komandra.com', name: 'Bob Member', role: 'member', photoURL: 'https://i.pravatar.cc/150?u=member-3' },
 ];
 
 const STANDARD_THEMES = [
@@ -143,6 +143,7 @@ async function seedData() {
             email: u.email,
             role: u.role,
             accountId,
+            photoURL: u.photoURL,
             privacyTier: 'TIER_1',
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
