@@ -32,7 +32,11 @@ export interface GraphData {
     edges: GraphEdge[];
 }
 
-export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphData> {
+export async function getConnectionGraphData(
+    dateLimit?: Date,
+    view: string = 'account',
+    targetUserId?: string
+): Promise<GraphData> {
     const user = await getUser();
 
     if (!user) {
@@ -41,9 +45,14 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
 
     const userId = user.id;
     const accountId = user.accountId;
+    const isPrivileged = user.role === 'owner' || user.role === 'admin' || user.role === 'account_admin';
+
+    // Force personal view for non-privileged users
+    let resolvedView = isPrivileged ? view : 'personal';
+    let resolvedTargetId = resolvedView === 'user' ? targetUserId : userId;
+    if (resolvedView === 'personal') resolvedTargetId = userId;
 
     const connectionsRef = adminDb.collection('connections');
-    const isPrivileged = user.role === 'owner' || user.role === 'admin' || user.role === 'account_admin';
 
     // Apply default 90-day window for privileged users if not specified
     let actualDateLimit = dateLimit;
@@ -56,7 +65,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
     const seenIds = new Set<string>();
     const partnerStats = new Map<string, { count: number; name: string; image?: string; id: string, sumSentiment: number }>();
 
-    if (isPrivileged && accountId) {
+    if (resolvedView === 'account' && accountId) {
         // Fetch ALL completed connections for the account
         let q = connectionsRef
             .where('accountId', '==', accountId)
@@ -74,12 +83,17 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
             }
         });
 
-    } else {
-        // Member behavior: Fetch connections where user is proposer or confirmer
-        const proposerQuery = connectionsRef.where('proposerId', '==', userId).where('status', '==', 'completed').get();
-        const confirmerQuery = connectionsRef.where('confirmerId', '==', userId).where('status', '==', 'completed').get();
+    } else if (resolvedTargetId) {
+        // Member or Target User behavior: Fetch connections where user is proposer or confirmer
+        const proposerQuery = connectionsRef
+            .where('proposerId', '==', resolvedTargetId)
+            .where('status', '==', 'completed');
+        
+        const confirmerQuery = connectionsRef
+            .where('confirmerId', '==', resolvedTargetId)
+            .where('status', '==', 'completed');
 
-        const [proposerSnaps, confirmerSnaps] = await Promise.all([proposerQuery, confirmerQuery]);
+        const [proposerSnaps, confirmerSnaps] = await Promise.all([proposerQuery.get(), confirmerQuery.get()]);
 
         const addDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
             if (!seenIds.has(doc.id)) {
@@ -94,7 +108,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
 
     // Collect all participant IDs
     const participantIds = new Set<string>();
-    if (!isPrivileged) participantIds.add(userId); 
+    if (resolvedView !== 'account' && resolvedTargetId) participantIds.add(resolvedTargetId); 
 
     for (const conn of relevantConnections) {
         if (conn.proposerId) participantIds.add(conn.proposerId);
@@ -123,7 +137,7 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
 
-    if (isPrivileged && accountId) {
+    if (resolvedView === 'account' && accountId) {
         // --- Circular Layout for Account ---
         const allUsers = Array.from(participantIds);
         const count = allUsers.length;
@@ -166,23 +180,23 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
             });
         });
 
-    } else {
-        // --- Radial Layout for Member (Centered on Me) ---
+    } else if (resolvedTargetId) {
+        // --- Radial Layout for Member/Target User (Centered on Target) ---
 
-        // Center Node (Me)
+        // Center Node (Target)
+        const targetDetails = userDetails.get(resolvedTargetId) || { name: 'Unknown' };
         nodes.push({
-            id: userId,
+            id: resolvedTargetId,
             type: 'self',
-            data: { label: 'Me', image: user.photoURL || undefined },
+            data: { label: resolvedTargetId === userId ? 'Me' : targetDetails.name, image: targetDetails.image },
             position: { x: 0, y: 0 }
         });
 
         // Calculate stats for partners
         for (const conn of relevantConnections) {
-            const isProposer = conn.proposerId === userId;
-            const partnerId = isProposer ? conn.confirmerId : conn.proposerId;
+            const partnerId: string | undefined = conn.proposerId === resolvedTargetId ? conn.confirmerId : conn.proposerId;
 
-            if (partnerId === userId) continue;
+            if (!partnerId || partnerId === resolvedTargetId) continue;
 
             if (!partnerStats.has(partnerId)) {
                 const details = userDetails.get(partnerId) || { name: 'Unknown' };
@@ -218,8 +232,8 @@ export async function getConnectionGraphData(dateLimit?: Date): Promise<GraphDat
             });
 
             edges.push({
-                id: `e-${userId}-${stats.id}`,
-                source: userId,
+                id: `e-${resolvedTargetId}-${stats.id}`,
+                source: resolvedTargetId,
                 target: stats.id,
                 animated: true,
                 label: `${stats.count}x • ${avgSentiment}`,

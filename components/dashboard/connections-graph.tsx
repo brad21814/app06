@@ -49,9 +49,11 @@ const nodeTypes = {
 
 interface ConnectionsGraphProps {
     dateLimit?: Date;
+    view?: string;
+    targetUserId?: string;
 }
 
-export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
+export function ConnectionsGraph({ dateLimit, view, targetUserId }: ConnectionsGraphProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
         const loadGraph = async () => {
             setLoading(true);
             try {
-                const data = await getConnectionGraphData(dateLimit);
+                const data = await getConnectionGraphData(dateLimit, view, targetUserId);
                 setNodes(data.nodes);
                 setEdges(data.edges.map(e => ({
                     ...e,
@@ -79,7 +81,7 @@ export function ConnectionsGraph({ dateLimit }: ConnectionsGraphProps) {
         };
 
         loadGraph();
-    }, [setNodes, setEdges, dateLimit]);
+    }, [setNodes, setEdges, dateLimit, view, targetUserId]);
 
     return (
         <div className="space-y-4">

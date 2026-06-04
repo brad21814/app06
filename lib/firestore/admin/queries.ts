@@ -13,6 +13,19 @@ import {
     getAnalyticsCollection,
     getRelationshipsCollection
 } from './collections';
+
+export {
+    getUsersCollection,
+    getTeamsCollection,
+    getTeamMembersCollection,
+    getActivityLogsCollection,
+    getUserDoc,
+    getTeamDoc,
+    getAccountDoc,
+    getConnectionsCollection,
+    getAnalyticsCollection,
+    getRelationshipsCollection
+};
 import { User, Team, Account, ActivityLog, Connection, AnalyticsSnapshot, Relationship, ConnectionWithParticipants, PrivacyTier } from '@/types/firestore';
 
 export async function getUser(): Promise<User | null> {
