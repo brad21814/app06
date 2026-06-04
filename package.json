@@ -62,5 +62,13 @@
     "twilio-video": "^2.33.0",
     "typescript": "^5.8.3",
     "zod": "^3.24.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "@tailwindcss/oxide",
+      "protobufjs",
+      "sharp"
+    ]
   }
 }
