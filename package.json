@@ -64,11 +64,6 @@
     "zod": "^3.24.4"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@firebase/util",
-      "@tailwindcss/oxide",
-      "protobufjs",
-      "sharp"
-    ]
+    "dangerouslyAllowAllBuilds": true
   }
 }

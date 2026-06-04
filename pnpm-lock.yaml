@@ -2,8 +2,8 @@ lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
+  dangerouslyAllowAllBuilds: true
   excludeLinksFromLockfile: false
-  onlyBuiltDependencies: ["@firebase/util", "@tailwindcss/oxide", protobufjs, sharp]
 
 importers:
 
