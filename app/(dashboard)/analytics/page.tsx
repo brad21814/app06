@@ -41,7 +41,17 @@ async function AnalyticsData() {
 
     const analyticsData = analyticsSnap.docs.map(doc => serializeFirestoreData(doc.data()));
 
-    // 2. Fetch User's Team (for granular view - MVP limitation: showing user's team only)
+    // 2. Fetch Account Users for mapping IDs to Names
+    const usersSnap = await adminDb.collection('users')
+        .where('accountId', '==', accountId)
+        .get();
+    
+    const usersMap: Record<string, any> = {};
+    usersSnap.docs.forEach(doc => {
+        usersMap[doc.id] = serializeFirestoreData(doc.data());
+    });
+
+    // 3. Fetch User's Team (for granular view - MVP limitation: showing user's team only)
     // We need to find which team the user is in.
     const memberSnap = await getTeamMembersCollection()
         .where('userId', '==', session.user.id)
@@ -59,7 +69,13 @@ async function AnalyticsData() {
             .where('teamId', '==', teamId)
             .get();
 
-        teamMembers = teamMembersSnap.docs.map(doc => serializeFirestoreData(doc.data()));
+        teamMembers = teamMembersSnap.docs.map(doc => {
+            const data = serializeFirestoreData(doc.data());
+            return {
+                ...data,
+                user: usersMap[data.userId] || { name: 'Unknown User' }
+            };
+        });
 
         // Fetch Relationships for this team
         const relSnap = await adminDb.collection('relationships')
@@ -67,17 +83,15 @@ async function AnalyticsData() {
             .limit(20) // Limit for performance
             .get();
 
-        relationships = relSnap.docs.map(doc => serializeFirestoreData(doc.data()));
+        relationships = relSnap.docs.map(doc => {
+            const data = serializeFirestoreData(doc.data());
+            return {
+                ...data,
+                user1: usersMap[data.users[0]] || { name: 'Unknown' },
+                user2: usersMap[data.users[1]] || { name: 'Unknown' }
+            };
+        });
     }
-
-    // Fetch Relationships (We need to import adminDb)
-    // We'll require a dynamic import or checking if we can import adminDb directly in page.tsx
-    // It's a server component, so yes.
-
-    // HOWEVER, we don't have a helper for relationships yet.
-    // Let's skip fetching relationships for this exact tool call and do it in next one 
-    // or just assume we can't display them yet until we add the helper?
-    // actually I can just add the helper code right here if imports allow.
 
     return <AnalyticsDashboard analyticsData={analyticsData} teamMembers={teamMembers} relationships={relationships} />;
 }

@@ -108,7 +108,18 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
                             <TableBody>
                                 {sortedMembers.slice(0, 10).map((member: any) => (
                                     <TableRow key={member.userId}>
-                                        <TableCell className="font-medium">{member.role || 'Member'}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage src={member.user?.photoURL} alt={member.user?.name} />
+                                                    <AvatarFallback>{member.user?.name?.substring(0, 2).toUpperCase() || '??'}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span>{member.user?.name || 'Unknown'}</span>
+                                                    <span className="text-xs text-muted-foreground uppercase">{member.role}</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>{member.stats?.totalConnections || 0}</TableCell>
                                         <TableCell>
                                             {member.stats?.lastConnectedAt
@@ -142,14 +153,22 @@ export function AnalyticsDashboard({ analyticsData, teamMembers = [], relationsh
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {topRelationships.length > 0 ? topRelationships.map((rel) => (
+                                {topRelationships.length > 0 ? topRelationships.map((rel: any) => (
                                     <TableRow key={rel.id}>
                                         <TableCell className="font-medium">
-                                            {/* Ideally we map IDs to Names, but for now showing ID snippet or 'Pair' */}
-                                            Pair {rel.id.substring(0, 8)}...
+                                            <div className="flex flex-col">
+                                                <span>{rel.user1?.name || 'User'} & {rel.user2?.name || 'User'}</span>
+                                                <div className="flex gap-1 mt-1">
+                                                    {rel.tags?.slice(0, 2).map((tag: string) => (
+                                                        <Badge key={tag} variant="outline" className="text-[10px] px-1 py-0">{tag}</Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant="outline">{rel.strengthScore}</Badge>
+                                            <div className="flex flex-col gap-1">
+                                                <Badge variant={rel.strengthScore > 80 ? "default" : "outline"}>{rel.strengthScore}</Badge>
+                                            </div>
                                         </TableCell>
                                         <TableCell>{rel.connectionCount}</TableCell>
                                     </TableRow>

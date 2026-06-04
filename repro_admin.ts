@@ -33,8 +33,22 @@ async function main() {
     try {
         console.log('Project ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
 
-        const snapshot = await adminDb.collection('users').limit(1).get();
-        console.log('Snapshot empty?', snapshot.empty);
+        const analyticsSnap = await adminDb.collection('analytics').get();
+        console.log('Analytics count:', analyticsSnap.size);
+        analyticsSnap.docs.forEach(doc => {
+            const data = doc.data();
+            console.log(`- Analytics: ${doc.id}, type: ${data.entityType}, period: ${data.period}`);
+        });
+
+        const relSnap = await adminDb.collection('relationships').get();
+        console.log('Relationships count:', relSnap.size);
+
+        const usersSnap = await adminDb.collection('users').get();
+        console.log('Users count:', usersSnap.size);
+        usersSnap.docs.forEach(doc => {
+            console.log(`- User: ${doc.id}, name: ${doc.data().name}, accountId: ${doc.data().accountId}`);
+        });
+
         console.log('Success!');
     } catch (error) {
         console.error('Error:', error);

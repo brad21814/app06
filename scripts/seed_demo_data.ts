@@ -319,6 +319,7 @@ async function seedData() {
     console.log('Aggregating analytics...');
     const months = ['2026-04', '2026-05'];
     for (const month of months) {
+        // Team Analytics
         await db.collection('analytics').doc(`team_${allMembersTeamId}_${month}`).set({
             id: `team_${allMembersTeamId}_${month}`,
             entityType: 'team',
@@ -330,6 +331,21 @@ async function seedData() {
             participationRate: 0.9,
             relationshipDensity: 0.6,
             topTopics: [{ topic: 'Product', count: 8 }, { topic: 'Engineering', count: 6 }],
+            updatedAt: Timestamp.now()
+        });
+
+        // Account Analytics
+        await db.collection('analytics').doc(`account_${accountId}_${month}`).set({
+            id: `account_${accountId}_${month}`,
+            entityType: 'account',
+            entityId: accountId,
+            period: month,
+            totalConnections: 25,
+            completedConnections: 25,
+            avgSentiment: 80 + Math.random() * 5,
+            participationRate: 0.85,
+            relationshipDensity: 0.5,
+            topTopics: [{ topic: 'Strategy', count: 10 }, { topic: 'Culture', count: 8 }],
             updatedAt: Timestamp.now()
         });
     }
