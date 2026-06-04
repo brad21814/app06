@@ -1,5 +1,6 @@
 {
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:emulator": "NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true next dev --turbopack",
@@ -64,6 +65,11 @@
     "zod": "^3.24.4"
   },
   "pnpm": {
-    "dangerouslyAllowAllBuilds": true
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "@tailwindcss/oxide",
+      "protobufjs",
+      "sharp"
+    ]
   }
 }
