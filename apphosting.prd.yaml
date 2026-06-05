@@ -1,0 +1,51 @@
+# Prod Environment Overrides
+# This file is used when the Backend "Environment name" is set to 'prd'
+
+env:
+  # NOTE: Replace these values with your production-specific configuration
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: YOUR_PROD_API_KEY
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: komandra-app06-prd.firebaseapp.com
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: komandra-app06-prd
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: komandra-app06-prd.firebasestorage.app
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: YOUR_PROD_SENDER_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: YOUR_PROD_APP_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: YOUR_PROD_MEASUREMENT_ID
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://YOUR_PROD_APP_URL.hosted.app
+    availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_FUNCTIONS_URL
+    value: https://us-central1-komandra-app06-prd.cloudfunctions.net
+    availability: [BUILD, RUNTIME]
+
+  # Production Stripe Keys
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: YOUR_PROD_STRIPE_PUBLISHABLE_KEY
+    availability: [BUILD, RUNTIME]
+  - variable: STRIPE_PRICE_ID_LAUNCHPAD
+    value: YOUR_PROD_PRICE_ID_LAUNCHPAD
+    availability: [BUILD, RUNTIME]
+  - variable: STRIPE_PRICE_ID_GROWTH
+    value: YOUR_PROD_PRICE_ID_GROWTH
+    availability: [BUILD, RUNTIME]
+  - variable: STRIPE_PRICE_ID_CULTURE
+    value: YOUR_PROD_PRICE_ID_CULTURE
+    availability: [BUILD, RUNTIME]
+    
+  # Production Recaptcha
+  - variable: NEXT_PUBLIC_GOOGLE_RECAPTCHA_V3_SITE_KEY
+    value: YOUR_PROD_RECAPTCHA_SITE_KEY
+    availability: [BUILD, RUNTIME]
