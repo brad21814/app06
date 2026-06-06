@@ -36,13 +36,13 @@ env:
     value: pk_live_51KaBPTG06ui0blDzLxjvqvT7HPOb8DREaWxgBbeCY4L8RHq1MVYMU1K8kh5InfaYFVH5u9FyAByl1bmjU9RgdO0j00evOL1ZXl
     availability: [BUILD, RUNTIME]
   - variable: STRIPE_PRICE_ID_LAUNCHPAD
-    value: prod_UeYfCjXLLXFkVa
+    value: price_1TfFYSG06ui0blDzaOJKjtnd
     availability: [BUILD, RUNTIME]
   - variable: STRIPE_PRICE_ID_GROWTH
-    value: prod_UeYgZkr4BvqQo7
+    value: price_1TfFZCG06ui0blDz9VqYbQtk
     availability: [BUILD, RUNTIME]
   - variable: STRIPE_PRICE_ID_CULTURE
-    value: prod_UeYh78x09airWX
+    value: price_1TfFZkG06ui0blDzwinlDY5G
     availability: [BUILD, RUNTIME]
     
   # Production Recaptcha
