@@ -54,11 +54,11 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
         run: |
-          firebase deploy --only functions --project dev --token "$FIREBASE_TOKEN"
+          firebase deploy --only functions --project dev --token "$FIREBASE_TOKEN" --force
 
       - name: Deploy to Prod
         if: github.ref == 'refs/heads/main'
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_PRD }}
         run: |
-          firebase deploy --only functions --project prd --token "$FIREBASE_TOKEN"
+          firebase deploy --only functions --project prd --token "$FIREBASE_TOKEN" --force
