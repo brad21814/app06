@@ -9,82 +9,16 @@ runConfig:
 
 # Environment variables and secrets.
 env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: AIzaSyCidiRoyqOIDu0oJ74qcMqgaK4KNb4dD3U
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: komandra-app06.firebaseapp.com
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: komandra-app06
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: komandra-app06.firebasestorage.app
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: 320642884674
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: 1:320642884674:web:1d81718f8bf583724039db
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    value: G-KNJNKGX5XR
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_APP_URL
-    value: https://app06--komandra-app06.us-east4.hosted.app
-    availability:
-      - BUILD
-      - RUNTIME
-      
-  - variable: NEXT_PUBLIC_FUNCTIONS_URL
-    value: https://us-central1-komandra-app06.cloudfunctions.net
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    value: pk_test_51KaBPTG06ui0blDz3wJ87AUoXQ1DZIeV5vq2a99IY3cAMRiDo11XuZajaZXFCxtNoUEP4tWaeWAU5aT4POrQvncq00xggQk3W4
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: STRIPE_PRICE_ID_LAUNCHPAD
-    value: price_1T6bwAG06ui0blDzif29XydT
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: STRIPE_PRICE_ID_GROWTH
-    value: price_1T6bwaG06ui0blDzwwVt8SKL
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: STRIPE_PRICE_ID_CULTURE
-    value: price_1T6bx4G06ui0blDzZX8zI7Dr
-    availability:
-      - BUILD
-      - RUNTIME
-  - variable: NEXT_PUBLIC_GOOGLE_RECAPTCHA_V3_SITE_KEY
-    value: 6Lc5sZgsAAAAAKyZqFeDRImT5TZnt68CV7jMbWfC
-    availability:
-      - BUILD
-      - RUNTIME
+  # NOTE: Most environment variables are now in apphosting.dev.yaml and apphosting.prd.yaml
+  # to support multi-environment deployment.
 
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+  # Shared Non-Sensitive Variables
+  - variable: POSTMARK_FROM_ADDRESS
+    value: brad@komandra.com
+    availability: [BUILD, RUNTIME]
+
+  # Shared Secrets (Must exist in both projects with these names)
+  # See docs/environment_setup.md for provisioning instructions.
   - variable: AUTH_SECRET
     secret: secretAuthSecret
   - variable: TWILIO_API_KEY
@@ -97,11 +31,6 @@ env:
     secret: secretTwilioAuthToken
   - variable: POSTMARK_SERVER_API_TOKEN
     secret: secretPostmarkServerApiToken
-  - variable: POSTMARK_FROM_ADDRESS
-    value: brad@komandra.com
-    availability:
-      - BUILD
-      - RUNTIME
   - variable: STRIPE_SECRET_KEY
     secret: secretStripeSecretKey
   - variable: STRIPE_WEBHOOK_SECRET

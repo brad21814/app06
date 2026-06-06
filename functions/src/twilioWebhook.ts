@@ -6,10 +6,12 @@ import twilio from "twilio";
 if (!getApps().length) initializeApp();
 const db = getFirestore();
 
-export const twilioWebhook = onRequest(async (req, res) => {
+export const twilioWebhook = onRequest({
+    secrets: ["secretTwilioAuthToken", "secretTwilioAccountSid"]
+}, async (req, res) => {
     try {
         const signature = req.headers["x-twilio-signature"] as string;
-        const authToken = process.env.TWILIO_AUTH_TOKEN;
+        const authToken = process.env.secretTwilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
 
         let url = "";
         // if (process.env.FUNCTION_REGION && process.env.GCLOUD_PROJECT) {

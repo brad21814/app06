@@ -9,7 +9,7 @@ import { GoogleVideoService } from "./services/googleVideo";
 
 if (!getApps().length) {
     initializeApp({
-        storageBucket: process.env.STORAGE_BUCKET || 'komandra-app06.firebasestorage.app'
+        storageBucket: process.env.STORAGE_BUCKET
     });
 }
 const db = getFirestore();
@@ -174,19 +174,19 @@ async function runScheduleCheck() {
 }
 
 // 1. Manual/Local Trigger (Pub/Sub)
-// 1. Manual/Local Trigger (Pub/Sub)
-export const checkSchedules = onMessagePublished("check-schedules", async (event) => {
+export const checkSchedules = onMessagePublished({
+    topic: "check-schedules",
+    secrets: ["secretPostmarkServerApiToken"]
+}, async (event) => {
     console.log("Check Schedules triggered MANUALLY via Pub/Sub");
     await runScheduleCheck();
 });
 
 // 2. Scheduled Trigger (Cron)
-// Runs every 30 minutes. 
-// Note: In production, configure the timezone if specific day alignment matters (e.g. .timeZone('America/New_York'))
-// 2. Scheduled Trigger (Cron)
-// Runs every 30 minutes. 
-// Note: In production, configure the timezone if specific day alignment matters (e.g. .timeZone('America/New_York'))
-export const checkSchedulesScheduled = onSchedule("every 30 minutes", async (event) => {
+export const checkSchedulesScheduled = onSchedule({
+    schedule: "every 30 minutes",
+    secrets: ["secretPostmarkServerApiToken"]
+}, async (event) => {
     console.log("Check Schedules triggered AUTOMATICALLY via Schedule");
     await runScheduleCheck();
 });

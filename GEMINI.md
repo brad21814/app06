@@ -2,6 +2,23 @@
 
 Auto-generated from all feature plans. Last updated: 2026-03-01
 
+## Multi-Environment Deployment
+
+This project uses a multi-environment setup with Firebase App Hosting and GitHub Actions.
+
+### Branching Strategy
+- **`dev` branch**: Deploys to the development environment (`komandra-app06`).
+- **`main` branch**: Deploys to the production environment (`komandra-app06-prd`).
+
+### Configuration Files
+- `apphosting.yaml`: Base configuration shared by all environments.
+- `apphosting.dev.yaml`: Overrides for the `dev` environment.
+- `apphosting.prd.yaml`: Overrides for the `prd` environment.
+*Note: Ensure the "Environment name" in the Firebase App Hosting console matches the suffix (e.g., `dev` or `prd`).*
+
+### Automated Infrastructure Deployment
+Security rules and indexes are automatically deployed via GitHub Actions (`.github/workflows/deploy-rules.yml`) whenever changes are pushed to `dev` or `main`.
+
 ## Active Technologies
 - TypeScript (Next.js 15+ App Router) + `stripe`, `firebase-admin`, `firebase` (001-stripe-subscription-management)
 - Firestore (Organizations, Subscriptions, Users) (001-stripe-subscription-management)

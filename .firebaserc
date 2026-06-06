@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "komandra-app06"
+    "dev": "komandra-app06",
+    "prd": "komandra-app06-prd"
   }
 }

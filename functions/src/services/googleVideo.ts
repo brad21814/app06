@@ -12,7 +12,8 @@ export class GoogleVideoService {
     static async transcribeVideo(gcsOrUrl: string): Promise<{ operationName: string, outputUri: string }> {
         // Construct Output URI
         // We need a bucket. Use the default one.
-        const bucketName = process.env.STORAGE_BUCKET || 'komandra-app06.firebasestorage.app';
+        const bucketName = process.env.STORAGE_BUCKET;
+        if (!bucketName) throw new Error("STORAGE_BUCKET not configured");
         // Create a unique filename for the output
         const timestamp = Date.now();
         // Extract filename from input if possible, or random

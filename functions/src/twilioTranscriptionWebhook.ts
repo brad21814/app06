@@ -5,7 +5,9 @@ import { getFirestore, Timestamp } from "firebase-admin/firestore";
 if (!getApps().length) initializeApp();
 const db = getFirestore();
 
-export const twilioTranscriptionWebhook = onRequest(async (req, res) => {
+export const twilioTranscriptionWebhook = onRequest({
+    secrets: ["secretTwilioAuthToken", "secretTwilioAccountSid"]
+}, async (req, res) => {
     try {
         console.log(`[TwilioTranscriptionWebhook] Received event: ${req.body.Status || req.query.Status}`);
 
