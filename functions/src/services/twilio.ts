@@ -2,8 +2,8 @@ import twilio from 'twilio';
 import https from 'https';
 import { GoogleVideoService } from './googleVideo';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+const accountSid = process.env.secretTwilioAccountSid || process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.secretTwilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
 
 // Initialize client lazily or on demand to avoid errors if env vars missing in some contexts
 const getClient = () => {

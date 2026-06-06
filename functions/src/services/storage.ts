@@ -38,7 +38,8 @@ export class CloudStorageService {
             credentials: credentials
         });
 
-        const bucketName = process.env.STORAGE_BUCKET || 'komandra-app06.firebasestorage.app';
+        const bucketName = process.env.STORAGE_BUCKET;
+        if (!bucketName) throw new Error("STORAGE_BUCKET not configured");
         console.log(`[CloudStorageService] Target Bucket: ${bucketName}`);
 
         const bucket = storage.bucket(bucketName);

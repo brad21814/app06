@@ -1,6 +1,6 @@
 import { ServerClient } from 'postmark';
 
-const postmarkToken = process.env.POSTMARK_SERVER_API_TOKEN || process.env.POSTMARK_API_TEST || 'POSTMARK_API_TEST';
+const postmarkToken = process.env.secretPostmarkServerApiToken || process.env.POSTMARK_SERVER_API_TOKEN || process.env.POSTMARK_API_TEST || 'POSTMARK_API_TEST';
 const client = new ServerClient(postmarkToken);
 
 const FROM_EMAIL = process.env.POSTMARK_FROM_ADDRESS || 'admin@example.com';
