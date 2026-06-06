@@ -4,7 +4,7 @@
 env:
   # NOTE: Replace these values with your production-specific configuration
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: YOUR_PROD_API_KEY
+    value: AIzaSyDxEpzZiiAqjmziRcLeoHgs93G23sePkNo
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     value: komandra-app06-prd.firebaseapp.com
@@ -16,16 +16,16 @@ env:
     value: komandra-app06-prd.firebasestorage.app
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: YOUR_PROD_SENDER_ID
+    value: 221977932931
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: YOUR_PROD_APP_ID
+    value: 1:221977932931:web:ff0119e7f25e8a7cf317b6
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    value: YOUR_PROD_MEASUREMENT_ID
+    value: G-FLN280RXVH
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_APP_URL
-    value: https://YOUR_PROD_APP_URL.hosted.app
+    value: komandra-app06-prd.firebaseapp.com
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_FUNCTIONS_URL
     value: https://us-central1-komandra-app06-prd.cloudfunctions.net
@@ -33,7 +33,7 @@ env:
 
   # Production Stripe Keys
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    value: YOUR_PROD_STRIPE_PUBLISHABLE_KEY
+    value: pk_live_51KaBPTG06ui0blDzLxjvqvT7HPOb8DREaWxgBbeCY4L8RHq1MVYMU1K8kh5InfaYFVH5u9FyAByl1bmjU9RgdO0j00evOL1ZXl
     availability: [BUILD, RUNTIME]
   - variable: STRIPE_PRICE_ID_LAUNCHPAD
     value: YOUR_PROD_PRICE_ID_LAUNCHPAD
