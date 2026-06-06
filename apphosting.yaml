@@ -9,44 +9,16 @@ runConfig:
 
 # Environment variables and secrets.
 env:
-  # NOTE: Hardcoded values removed to support multi-environment deployment.
-  # These variables must be configured per-backend in the Firebase Console
-  # or via the CLI: firebase apphosting:backends:update
+  # NOTE: Most environment variables are now in apphosting.dev.yaml and apphosting.prd.yaml
+  # to support multi-environment deployment.
 
-  # Firebase Client Configuration
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_APP_URL
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_FUNCTIONS_URL
+  # Shared Non-Sensitive Variables
+  - variable: POSTMARK_FROM_ADDRESS
+    value: brad@komandra.com
     availability: [BUILD, RUNTIME]
 
-  # Third Party Keys (Stripe, Recaptcha)
-  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    availability: [BUILD, RUNTIME]
-  - variable: STRIPE_PRICE_ID_LAUNCHPAD
-    availability: [BUILD, RUNTIME]
-  - variable: STRIPE_PRICE_ID_GROWTH
-    availability: [BUILD, RUNTIME]
-  - variable: STRIPE_PRICE_ID_CULTURE
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_GOOGLE_RECAPTCHA_V3_SITE_KEY
-    availability: [BUILD, RUNTIME]
-
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+  # Shared Secrets (Must exist in both projects with these names)
+  # See docs/environment_setup.md for provisioning instructions.
   - variable: AUTH_SECRET
     secret: secretAuthSecret
   - variable: TWILIO_API_KEY
@@ -59,9 +31,6 @@ env:
     secret: secretTwilioAuthToken
   - variable: POSTMARK_SERVER_API_TOKEN
     secret: secretPostmarkServerApiToken
-  - variable: POSTMARK_FROM_ADDRESS
-    value: brad@komandra.com
-    availability: [BUILD, RUNTIME]
   - variable: STRIPE_SECRET_KEY
     secret: secretStripeSecretKey
   - variable: STRIPE_WEBHOOK_SECRET
