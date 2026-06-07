@@ -47,5 +47,5 @@ env:
     
   # Production Recaptcha
   - variable: NEXT_PUBLIC_GOOGLE_RECAPTCHA_V3_SITE_KEY
-    value: 6LeaUA8tAAAAADWDCeZn9SIMe-tCgeE4T_Q5_kEK
+    value: 6LegcxItAAAAAAHCBGdGI1yPLzP4ahWL-zD02FJC
     availability: [BUILD, RUNTIME]
