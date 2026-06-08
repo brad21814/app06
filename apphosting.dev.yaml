@@ -29,6 +29,9 @@ env:
   - variable: NEXT_PUBLIC_FUNCTIONS_URL
     value: https://us-central1-komandra-app06.cloudfunctions.net
     availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SITE_ENVIRONMENT
+    value: dev
+    availability: [BUILD, RUNTIME]
 
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
     value: pk_test_51KaBPTG06ui0blDz3wJ87AUoXQ1DZIeV5vq2a99IY3cAMRiDo11XuZajaZXFCxtNoUEP4tWaeWAU5aT4POrQvncq00xggQk3W4

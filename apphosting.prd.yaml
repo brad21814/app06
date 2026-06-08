@@ -30,6 +30,9 @@ env:
   - variable: NEXT_PUBLIC_FUNCTIONS_URL
     value: https://us-central1-komandra-app06-prd.cloudfunctions.net
     availability: [BUILD, RUNTIME]
+  - variable: NEXT_PUBLIC_SITE_ENVIRONMENT
+    value: prd
+    availability: [BUILD, RUNTIME]
 
   # Production Stripe Keys
   - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
