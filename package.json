@@ -18,7 +18,8 @@
     "db:seed:demo": "GOOGLE_APPLICATION_CREDENTIALS=\"secrets/komandra-app06-3d2e18069412.json\" npx tsx scripts/seed_demo_data.ts",
     "deploy:rules": "firebase deploy --only firestore:rules,storage --project",
     "deploy:rules:firestore": "firebase deploy --only firestore:rules --project",
-    "deploy:rules:storage": "firebase deploy --only storage --project"
+    "deploy:rules:storage": "firebase deploy --only storage --project",
+    "firestore:indexes:sync": "firebase firestore:indexes --project komandra-app06 > firestore.indexes.json"
   },
   "dependencies": {
     "@playwright/test": "^1.57.0",
