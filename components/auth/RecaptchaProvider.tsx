@@ -13,6 +13,7 @@ export function RecaptchaProvider({ children }: { children: React.ReactNode }) {
   return (
     <GoogleReCaptchaProvider
       reCaptchaKey={siteKey}
+      useEnterprise={true}
       scriptProps={{
         async: false,
         defer: false,
