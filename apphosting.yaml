@@ -14,7 +14,7 @@ env:
 
   # Shared Non-Sensitive Variables
   - variable: POSTMARK_FROM_ADDRESS
-    value: brad@komandra.com
+    value: noreply@teampulp.com
     availability: [BUILD, RUNTIME]
 
   # Shared Secrets (Must exist in both projects with these names)
