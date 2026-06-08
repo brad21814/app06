@@ -362,11 +362,12 @@ https://console.cloud.google.com/security/secret-manager?project=komandra-app06
 
 
 Adding a key 
-echo -n 'xxxxxxxxxx' | firebase apphosting:secrets:set secretGoogleRecaptchaV3SecretKey --data-file - -f
+echo -n 'xxxxxxxxxx' | firebase apphosting:secrets:set secretGoogleRecaptchaV3SecretKey --data-file - -f --project komandra-app06-prd
 
 
 Applying permissions
 firebase apphosting:secrets:grantaccess secretGoogleRecaptchaV3SecretKey --backend app06 --project komandra-app06 
+
 
 
 #### DEV
@@ -374,3 +375,15 @@ firebase apphosting:secrets:grantaccess secretGoogleRecaptchaV3SecretKey --backe
 ##### Logs
 
 https://console.cloud.google.com/logs/query;query=%2528resource.type%3D%22cloud_function%22%20resource.labels.function_name%3D%2528%22checkSchedules%22%2529%20resource.labels.region%3D%22us-central1%22%2529%20OR%20%2528resource.type%3D%22cloud_run_revision%22%20resource.labels.service_name%3D%2528%22checkschedules%22%2529%20resource.labels.location%3D%22us-central1%22%2529;cursorTimestamp=2025-12-19T23:34:20.990215436Z;duration=PT3H?authuser=0&project=komandra-app06&hl=en-US
+
+
+Create postmark server instance and if required sender signitures
+https://account.postmarkapp.com/servers
+
+Create captcha account
+
+Create stripe webhooks and secrets
+
+Create gcp secrets
+
+

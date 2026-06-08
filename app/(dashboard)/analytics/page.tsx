@@ -50,9 +50,10 @@ async function AnalyticsData({ searchParams }: { searchParams: Promise<{ view?: 
     const resolvedTargetId = resolvedView === 'user' ? targetUserId : session.user.id;
 
     // 1. Fetch Account Users for mapping IDs to Names & for the Filter
-    const accountUsers = isPrivileged ? await getAccountUsers(accountId) : [];
+    const accountUsersRaw = isPrivileged ? await getAccountUsers(accountId) : [];
+    const accountUsers = serializeFirestoreData(accountUsersRaw);
     const usersMap: Record<string, any> = {};
-    accountUsers.forEach(u => {
+    accountUsers.forEach((u: any) => {
         usersMap[u.id] = u;
     });
 
@@ -146,7 +147,7 @@ async function AnalyticsData({ searchParams }: { searchParams: Promise<{ view?: 
         <div className="space-y-4">
             {isPrivileged && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                    <DashboardFilter users={serializeFirestoreData(accountUsers)} currentUserId={session.user.id} />
+                    <DashboardFilter users={accountUsers} currentUserId={session.user.id} />
                 </div>
             )}
             <AnalyticsDashboard analyticsData={analyticsData} teamMembers={teamMembers} relationships={relationships} />
