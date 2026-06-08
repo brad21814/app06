@@ -56,10 +56,24 @@ export async function verifyRecaptcha(
     const data: GoogleRecaptchaResponse = await response.json();
 
     if (!data.success) {
+      console.error('reCAPTCHA siteverify failed:', {
+        errorCodes: data['error-codes'],
+        hostname: data.hostname,
+        action: data.action,
+        // Don't log the full token or secret for security, but log first few chars if needed
+        secretPrefix: secretKey.substring(0, 4),
+      });
+
+      let errorMessage = `reCAPTCHA verification failed: ${data['error-codes']?.join(', ') || 'unknown error'}`;
+      
+      if (data['error-codes']?.includes('invalid-input-response')) {
+        errorMessage += '. This often happens with reCAPTCHA Enterprise if you are using a regular API Key instead of the "Legacy Secret Key" in the Cloud Console.';
+      }
+
       return {
         success: false,
         score: data.score || 0,
-        error: `reCAPTCHA verification failed: ${data['error-codes']?.join(', ') || 'unknown error'}`,
+        error: errorMessage,
       };
     }
 
