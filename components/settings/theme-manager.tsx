@@ -131,36 +131,56 @@ export function ThemeManager() {
     });
 
     useEffect(() => {
-        if (!userData?.accountId) {
+        // System themes should be fetched regardless of whether we have an accountId yet
+        // as long as we have a user (rules require auth)
+        if (!user) {
             setLoading(false);
             return;
         }
 
-        // Fetch User Themes
-        const userThemesQuery = query(getThemesCollection(), where('accountId', '==', userData.accountId));
-        const unsubUserThemes = onSnapshot(userThemesQuery, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
-            setUserThemes(data);
-        }, (error) => {
-            console.error("Error fetching user themes:", error);
-        });
+        let systemLoaded = false;
+        let userLoaded = !userData?.accountId; // If no accountId, consider user themes "loaded" (empty)
+
+        const checkDone = () => {
+            if (systemLoaded && userLoaded) {
+                setLoading(false);
+            }
+        };
 
         // Fetch System Themes
         const systemThemesQuery = query(getThemesCollection(), where('accountId', '==', null));
         const unsubSystemThemes = onSnapshot(systemThemesQuery, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
             setSystemThemes(data);
-            setLoading(false); // Assume loaded when either returns or at least started
+            systemLoaded = true;
+            checkDone();
         }, (error) => {
             console.error("Error fetching system themes:", error);
-            setLoading(false);
+            systemLoaded = true;
+            checkDone();
         });
 
+        // Fetch User Themes - only if accountId is available
+        let unsubUserThemes = () => {};
+        if (userData?.accountId) {
+            const userThemesQuery = query(getThemesCollection(), where('accountId', '==', userData.accountId));
+            unsubUserThemes = onSnapshot(userThemesQuery, (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Theme));
+                setUserThemes(data);
+                userLoaded = true;
+                checkDone();
+            }, (error) => {
+                console.error("Error fetching user themes:", error);
+                userLoaded = true;
+                checkDone();
+            });
+        }
+
         return () => {
-            unsubUserThemes();
             unsubSystemThemes();
+            unsubUserThemes();
         };
-    }, [userData?.accountId]);
+    }, [user, userData?.accountId]);
 
     const resetForm = () => {
         setFormData({ name: '', description: '', questions: [''] });
