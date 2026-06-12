@@ -15,7 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ConnectionWithParticipants } from "@/types/firestore";
-import { Video } from "lucide-react";
+import { Video, MoreHorizontal } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ConnectionsProps {
     connections: ConnectionWithParticipants[];
@@ -96,12 +102,22 @@ export function Connections({ connections, currentUserId }: ConnectionsProps) {
                                         {connection.summary || '-'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Link href={`/connect/${connection.id}`} passHref>
-                                            <Button size="sm" variant="default" className="gap-2">
-                                                <Video className="w-4 h-4" />
-                                                {upcomingStatuses.includes(connection.status) ? 'Connect Now' : 'Reconnect'}
-                                            </Button>
-                                        </Link>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Open menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/connect/${connection.id}`} className="flex items-center">
+                                                        <Video className="mr-2 h-4 w-4" />
+                                                        <span>{upcomingStatuses.includes(connection.status) ? 'Connect Now' : 'Reconnect'}</span>
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))}
