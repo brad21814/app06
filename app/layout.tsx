@@ -5,12 +5,12 @@ import { AuthProvider } from '@/lib/firebase/auth-context';
 import { Toaster } from 'sonner';
 import { RecaptchaProvider } from '@/components/auth/RecaptchaProvider';
 
-const isDev = process.env.NEXT_PUBLIC_SITE_ENVIRONMENT === 'dev';
+const isProduction = process.env.NEXT_PUBLIC_SITE_ENVIRONMENT === 'prd';
 
 export const metadata: Metadata = {
   title: 'Next.js SaaS Starter',
   description: 'Get started quickly with Next.js, Postgres, and Stripe.',
-  ...(isDev && {
+  ...(!isProduction && {
     robots: {
       index: false,
       follow: false,

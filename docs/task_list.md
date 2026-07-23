@@ -22,6 +22,7 @@
 
 - [ ] TASK015: Allow admins and owners to view a list of all users in the account and drill into an individual user to gague sentiment and health.
 
+- [ ] TASK018: Create komandra-web06-prd blog site for content and marketing to funel users to our product for free trial. Use https://github.com/anastasiiaxfr/zeepay as the astro platform to get started.  Need to ensure it links back to our app.  Want to look for optimal ways to comile and host this on firebase. May need to do some research first on hosting with firebase.
 
 
 ## Go Live Tasks

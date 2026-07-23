@@ -17,19 +17,17 @@ export function RangeSelector({ defaultValue = '90' }: { defaultValue?: string }
     const currentValue = searchParams.get('range') || defaultValue;
 
     return (
-        <div className="flex justify-end mb-4">
-            <Select value={currentValue} onValueChange={handleValueChange}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="30">Last 30 days</SelectItem>
-                    <SelectItem value="90">Last 90 days</SelectItem>
-                    <SelectItem value="180">Last 6 months</SelectItem>
-                    <SelectItem value="365">Last year</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
+        <Select value={currentValue} onValueChange={handleValueChange}>
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="180">Last 6 months</SelectItem>
+                <SelectItem value="365">Last year</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+            </SelectContent>
+        </Select>
     );
 }

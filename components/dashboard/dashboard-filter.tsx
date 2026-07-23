@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,
     SelectContent,
@@ -24,6 +23,8 @@ export function DashboardFilter({ users, currentUserId }: DashboardFilterProps) 
     const view = searchParams.get("view") || "account";
     const targetUserId = searchParams.get("userId") || "";
 
+    const selectedValue = view === "user" ? `user:${targetUserId}` : view;
+
     const updateQuery = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
         Object.entries(updates).forEach(([key, value]) => {
@@ -37,48 +38,33 @@ export function DashboardFilter({ users, currentUserId }: DashboardFilterProps) 
     };
 
     return (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-            <Tabs
-                value={view}
-                onValueChange={(val) => {
-                    if (val === "account") {
-                        updateQuery({ view: "account", userId: null });
-                    } else if (val === "personal") {
-                        updateQuery({ view: "personal", userId: null });
-                    } else {
-                        updateQuery({ view: "user" });
-                    }
-                }}
-                className="w-full sm:w-auto"
-            >
-                <TabsList>
-                    <TabsTrigger value="account">Account</TabsTrigger>
-                    <TabsTrigger value="personal">Personal</TabsTrigger>
-                    <TabsTrigger value="user">Specific User</TabsTrigger>
-                </TabsList>
-            </Tabs>
-
-            {view === "user" && (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Select
-                        value={targetUserId}
-                        onValueChange={(val) => updateQuery({ userId: val })}
-                    >
-                        <SelectTrigger className="w-full sm:w-[200px]">
-                            <SelectValue placeholder="Select user..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {users
-                                .filter((u) => u.id !== currentUserId)
-                                .map((u) => (
-                                    <SelectItem key={u.id} value={u.id}>
-                                        {u.name || u.email}
-                                    </SelectItem>
-                                ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            )}
-        </div>
+        <Select
+            value={selectedValue}
+            onValueChange={(val) => {
+                if (val === "account") {
+                    updateQuery({ view: "account", userId: null });
+                } else if (val === "personal") {
+                    updateQuery({ view: "personal", userId: null });
+                } else if (val.startsWith("user:")) {
+                    const userId = val.split(":")[1];
+                    updateQuery({ view: "user", userId });
+                }
+            }}
+        >
+            <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select scope..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="account">Account</SelectItem>
+                <SelectItem value="personal">You</SelectItem>
+                {users
+                    .filter((u) => u.id !== currentUserId)
+                    .map((u) => (
+                        <SelectItem key={u.id} value={`user:${u.id}`}>
+                            {u.name || u.email}
+                        </SelectItem>
+                    ))}
+            </SelectContent>
+        </Select>
     );
 }

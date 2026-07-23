@@ -1,9 +1,9 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const isDev = process.env.NEXT_PUBLIC_SITE_ENVIRONMENT === 'dev';
+  const isProduction = process.env.NEXT_PUBLIC_SITE_ENVIRONMENT === 'prd';
 
-  if (isDev) {
+  if (!isProduction) {
     return {
       rules: {
         userAgent: '*',
@@ -20,3 +20,4 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${process.env.NEXT_PUBLIC_APP_URL}/sitemap.xml`,
   };
 }
+
